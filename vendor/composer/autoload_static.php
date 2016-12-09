@@ -285,6 +285,7 @@ class ComposerStaticInit210517ad491ad914be68cc9894ee64cd
         'CreateUsersTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_000000_create_users_table.php',
         'DatabaseSeeder' => __DIR__ . '/../..' . '/database/seeds/DatabaseSeeder.php',
         'DepartmentsSeeder' => __DIR__ . '/../..' . '/database/seeds/DepartmentsSeeder.php',
+        'FacultyDepartmentTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_09_224641_faculty_department_table.php',
         'File_Iterator' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Iterator.php',
         'File_Iterator_Facade' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Facade.php',
         'File_Iterator_Factory' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Factory.php',
