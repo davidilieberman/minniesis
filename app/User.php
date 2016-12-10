@@ -31,10 +31,4 @@ class User extends Authenticatable
       return $this->belongsTo('App\SisRole');
     }
 
-    public function departments() {
-      //if($this->role->role_code == 'FAC') {
-        return $this->belongsToMany('App\Department')->withTimestamps();
-      //}
-      //return false;
-    }
 }

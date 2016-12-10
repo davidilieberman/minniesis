@@ -4,12 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FacultyMember extends Model
+class Course extends Model
 {
-    public function user() {
-      return $this->hasOne('App\User');
-    }
-
     public function department() {
       return $this->belongsTo('App\Department');
     }
