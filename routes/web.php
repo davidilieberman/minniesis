@@ -33,3 +33,9 @@ Route::get('/faculty', function() {
 Route::get('/student', function() {
   echo "Student page <br/>";
 })->middleware('authz:STU');
+
+
+Route::get('/logout', function() {
+  Auth::logout();
+  return redirect('/login');
+});

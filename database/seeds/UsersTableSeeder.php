@@ -78,9 +78,9 @@ class UsersTableSeeder extends Seeder
 
         $users = [
           ['jill@harvard.edu','jill', 'helloworld', $stuId],
-          ['jamal@harvard.edu', 'jamal', 'helloworld', $stuId],
+          ['jamal@harvard.edu', 'jamal', 'helloworld', $regId],
           ['gquag@staff.nwr.edu', 'Glenn Quagmire', 'helloworld', $regId],
-          ['maggie@nwr.edu', 'Maggie Simpson', 'helloworld', $stuId],
+          ['maggie@nwr.edu', 'Maggie Simpson', 'helloworld', $regId],
           ['bscriv@staff.nwr.edu', 'Bartleby T. Scrivener', 'helloworld', $regId],
         ];
 
@@ -88,15 +88,6 @@ class UsersTableSeeder extends Seeder
 
         foreach ($faculty as $f) {
           $this->loadUser($f, '@fac.nwr.edu', $facId, $existingUsers);
-          // $em = $f[0].'@fac.nwr.edu';
-          // if (!array_key_exists($em, $existingUsers)) {
-          //   User::create([
-          //     'email' => $em,
-          //     'name' => $f[1],
-          //     'password' => Hash::make('helloworld'),
-          //     'sis_role_id' => $facId
-          //   ]);
-          // }
         }
 
         foreach($students as $s) {
