@@ -15,23 +15,56 @@ class FacultySeeder extends Seeder
     public function run()
     {
         $data = [
-          'dolores@fac.nwr.edu'=>'ENG',
-          'teddy@fac.nwr.edu'=>'CHM',
-          'maeve@fac.nwr.edu'=>'MUS',
-          'stewie@fac.nwr.edu'=>'BIO',
-          'alank@fac.nwr.edu'=>'THTR',
-          'amaso@fac.nwr.edu'=>'MATH',
-          'benito@fac.nwr.edu'=>'CSCI',
-          'abullock@fac.nwr.edu'=>'MUS'
+          'ENG' => [
+            ['dolores',true],
+            ['gwaterhouse', false],
+            ['jlncstr', false]
+          ],
+          'CHM' => [
+            ['teddy', true],
+            ['aporter', false],
+            ['babs', false]
+          ],
+          'MUS' => [
+            ['maeve', true],
+            ['cammie', false],
+            ['rsinger', false]
+          ],
+          'BIO' => [
+            ['stewie', true],
+            ['kpowell', false],
+            ['sswanson', false]
+          ],
+          'THTR' => [
+            ['lwinter', true],
+            ['hgrey', false],
+            ['jpicard', false]
+          ],
+          'MATH' => [
+            ['chshaver', true],
+            ['amaso', false],
+          ],
+          'CSCI' => [
+            ['benito', true],
+            ['abullock', false],
+            ['alank', false],
+          ]
         ];
 
-        foreach ($data as $email => $code) {
-          $fac = User::where('email','=',$email)->pluck('id')->first();
-          $dept = Department::where('dept_code','=',$code)->pluck('id')->first();
-          FacultyMember::create([
-            'user_id' => $fac,
-            'department_id' => $dept
-          ]);
+        foreach ($data as $code => $names)
+        {
+            $dept = Department::where('dept_code','=',$code)->first();
+            foreach ($names as $uname) {
+              $userId = User::where('email','=',$uname[0].'@fac.nwr.edu')
+                  ->pluck('id')->first();
+              if ($userId)
+              {
+                $fac = new FacultyMember();
+                $fac->user_id = $userId;
+                $fac->chair = $uname[1];
+                $dept->faculty_members()->save($fac);
+              }
+            }
         }
     }
 }

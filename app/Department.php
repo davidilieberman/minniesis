@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Department extends Model
 {
     public function faculty_members() {
-      return $this->hasMany('App\Faculty');
+      return $this->hasMany('App\FacultyMember');
     }
 
     public function courses() {
