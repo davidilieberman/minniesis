@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
-    public function faculty() {
-      return $this->belongsToMany('App\User')->withTimestamps();
+    public function users() {
+      return $this->belongsToMany('App\Faculty')->withTimestamps();
     }
 }

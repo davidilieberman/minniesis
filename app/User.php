@@ -32,9 +32,9 @@ class User extends Authenticatable
     }
 
     public function departments() {
-      if($this->role->role_code == 'FAC') {
-        return $this->belongsToMany('App\Deparment')->withTimestamps();
-      }
-      return false;
+      //if($this->role->role_code == 'FAC') {
+        return $this->belongsToMany('App\Department')->withTimestamps();
+      //}
+      //return false;
     }
 }
