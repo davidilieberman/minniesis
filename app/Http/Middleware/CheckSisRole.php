@@ -30,8 +30,6 @@ class CheckSisRole
         abort(403, 'Access Denied');
       }
 
-      echo ('Matched: '.$user->sis_role->role_code. " || ".$role." || ". $msg. "<br/>");
-
       return $next($request);
     }
 }

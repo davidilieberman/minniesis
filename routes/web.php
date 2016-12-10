@@ -20,8 +20,9 @@ Auth::routes();
 Route::get('/home', 'HomeController@index');
 
 Route::get('/registrar', function() {
-  echo "Registrar page <br/>";
-  dump(Auth::user()->toArray());
+  //echo "Registrar page <br/>";
+  //dump(Auth::user()->toArray());
+  return view('registrar.app');
 })->middleware('authz:RGR');
 
 
