@@ -27,7 +27,7 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
-    public function role() {
+    public function sis_role() {
       return $this->belongsTo('App\SisRole');
     }
 

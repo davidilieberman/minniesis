@@ -39,7 +39,41 @@ class UsersTableSeeder extends Seeder
           ['babs', 'Babette Collier'],
           ['aporter', 'Angela Porter'],
           ['gwaterhouse', 'Georgina Waterhouse']
+        ];
 
+        $students = [
+          ['rentwhistle', 'Robert Entwhistle'],
+          ['upinelli', 'Umberto Pinelli'],
+          ['mwagner', 'Miriam Wagner'],
+          ['kmiller', 'Kate Miller'],
+          ['glake', 'Greg Lake'],
+          ['jglenn', 'John Glenn'],
+          ['fthresher', 'Fred Thresher'],
+          ['khirokami', 'Kayo Hirokami'],
+          ['hli', 'Hoi-tzi Li'],
+          ['roccam', 'Ralph Occam'],
+          ['sdenton', 'Sarah Denton'],
+          ['mtripplehorn', 'Malcolm Tripplehorne'],
+          ['ibayles', 'Ingrid Bayled'],
+          ['mberman', 'Micah Berman'],
+          ['ctayler', 'Charles Taylor'],
+          ['bcox', 'Bob Cox'],
+          ['fkeyes', 'Florence Keyes'],
+          ['hnorth', 'Hank North'],
+          ['vallston', 'Val Allston'],
+          ['bgallion', 'Benjamin Gallion'],
+          ['efiarman', 'Elizabeth Fiarman'],
+          ['jmyra', 'John Myra'],
+          ['amorrocco', 'Andy Morrocco'],
+          ['jbleer', 'Jonathan Bleer'],
+          ['pglenndenning', 'Pierre Glenndenning'],
+          ['ofleur', 'Olivia Fleur'],
+          ['ablank', 'Amelia Blank'],
+          ['hstout', 'Hal Stout'],
+          ['jmbier', 'Jacob Meierbier'],
+          ['qfoyle', 'Quentin Foyle'],
+          ['skeating', 'Stanley Keating'],
+          ['achandresekharan', 'Arjun Chandrasekharan']
         ];
 
         $users = [
@@ -53,15 +87,20 @@ class UsersTableSeeder extends Seeder
         $existingUsers = User::all()->keyBy('email')->toArray();
 
         foreach ($faculty as $f) {
-          $em = $f[0].'@fac.nwr.edu';
-          if (!array_key_exists($em, $existingUsers)) {
-            User::create([
-              'email' => $em,
-              'name' => $f[1],
-              'password' => Hash::make('helloworld'),
-              'sis_role_id' => $facId
-            ]);
-          }
+          $this->loadUser($f, '@fac.nwr.edu', $facId, $existingUsers);
+          // $em = $f[0].'@fac.nwr.edu';
+          // if (!array_key_exists($em, $existingUsers)) {
+          //   User::create([
+          //     'email' => $em,
+          //     'name' => $f[1],
+          //     'password' => Hash::make('helloworld'),
+          //     'sis_role_id' => $facId
+          //   ]);
+          // }
+        }
+
+        foreach($students as $s) {
+          $this->loadUser($s, '@nwr.edu', $stuId, $existingUsers);
         }
 
         foreach ($users as $user) {
@@ -72,6 +111,17 @@ class UsersTableSeeder extends Seeder
             'sis_role_id' => $user[3]
           ]);
         }
+    }
 
+    private function loadUser($user, $domain, $role, $existingUsers) {
+        $em = $user[0].$domain;
+        if (!array_key_exists($em, $existingUsers)) {
+          User::create([
+            'email' => $em,
+            'name' => $user[1],
+            'password' => Hash::make('helloworld'),
+            'sis_role_id' => $role
+          ]);
+        }
     }
 }
