@@ -13,4 +13,8 @@ class Department extends Model
     public function courses() {
       return $this->hasMany('App\Course');
     }
+
+    public function course_offerings() {
+      return $this->hasManyThrough('App\Course', 'App\CourseOffering');
+    }
 }

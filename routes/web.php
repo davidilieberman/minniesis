@@ -19,12 +19,14 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index');
 
-Route::get('/registrar', function() {
-  //echo "Registrar page <br/>";
-  //dump(Auth::user()->toArray());
-  return view('registrar.app');
-})->middleware('authz:RGR');
+Route::get('/registrar', 'RegistrarController@listDepts')
+  ->middleware('authz:RGR');
 
+Route::get('/registrar/dept/{deptId}', 'RegistrarController@showDept')
+  ->middleware('authz:RGR');
+
+Route::get('/registrar/course/{deptId}/{courseId}', 'RegistrarController@showCourse')
+  ->middleware('authz:RGR');
 
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";

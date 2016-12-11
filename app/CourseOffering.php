@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CourseOfferings extends Model
+class CourseOffering extends Model
 {
     public function faculty_member() {
       return $this->belongsTo('App\FacultyMember');
