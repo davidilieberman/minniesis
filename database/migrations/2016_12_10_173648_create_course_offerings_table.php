@@ -17,6 +17,9 @@ class CreateCourseOfferingsTable extends Migration
             $table->increments('id');
             $table->timestamps();
 
+            $table->integer('instance_number')->unsigned();
+            $table->boolean('active')->default(true);
+
             $table->integer('course_id')->unsigned();
             $table->foreign('course_id')->references('id')->on('courses');
 

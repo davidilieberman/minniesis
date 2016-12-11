@@ -1,19 +1,15 @@
-@extends('layouts.app')
+@extends('registrar.app')
 
-@section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                  Registrar: <a href="/registrar">Departments</a> ::
-                    {{ $dept->dept_desc }}
-                </div>
-                <div class="panel-heading">
-                  <p style="font-size:0.8em;">
-                    Some text here.
-                  </p>
-                </div>
+@section('breadcrumb')
+Registrar: <a href="/registrar">Departments</a> ::
+  {{ $dept->dept_desc }}
+@endsection
+
+@section('summary')
+  Some text here.
+@endsection
+
+@section('pagedata')
                 <table class="table table-striped">
                       <tr>
                         <th>Course Name</th>
@@ -35,11 +31,4 @@
                       </tr>
                       @endforeach
                 </table>
-                @php
-                  //dump($dept->toArray());
-                @endphp
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

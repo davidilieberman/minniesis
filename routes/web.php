@@ -28,6 +28,10 @@ Route::get('/registrar/dept/{deptId}', 'RegistrarController@showDept')
 Route::get('/registrar/course/{deptId}/{courseId}', 'RegistrarController@showCourse')
   ->middleware('authz:RGR');
 
+Route::get('/registrar/offering/{deptId}/{courseId}/{facId}',
+  'RegistrarController@addOffering')
+  ->middleware('authz:RGR');
+
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";
   dump(Auth::user()->toArray());
