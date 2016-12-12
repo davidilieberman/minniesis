@@ -32,6 +32,12 @@ Route::get('/registrar/offering/{deptId}/{courseId}/{facId}',
   'RegistrarController@addOffering')
   ->middleware('authz:RGR');
 
+Route::post('/registrar/offering', 'RegistrarController@storeOffering')
+  ->middleware('authz:RGR');
+
+Route::put('/registrar/offering', 'RegistrarController@updateOffering')
+  ->middleware('authz:RGR');  
+
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";
   dump(Auth::user()->toArray());

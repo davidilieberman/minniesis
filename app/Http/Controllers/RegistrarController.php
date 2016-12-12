@@ -48,37 +48,39 @@ class RegistrarController extends Controller
       $courseId = $request->route('courseId');
       $facId = $request->route('facId');
 
-      // Verify that faculty member and course belong to specified department
-      $f = FacultyMember::where('faculty_members.id', $facId)
-        ->join('users', function($join) {
-          $join->on('faculty_members.user_id','=','users.id');
-        })->first();
-      if (!$f) {
-        Session::flash('error', 'No such faculty member!');
+      return $this->saveOffering($deptId, $courseId, $facId);
+    }
+
+    function storeOffering(Request $request) {
+      $deptId = $request->input('deptId');
+      $courseId = $request->input('courseId');
+      $facId = $request->input('facId');
+
+      return $this->saveOffering($deptId, $courseId, $facId);
+    }
+
+    private function saveOffering($deptId, $courseId, $facId) {
+      $validation = $this->validation(array(
+        'deptId'=>$deptId,
+        'courseId'=>$courseId,
+        'facId'=>$facId
+      ));
+
+      if (!$validation['valid']) {
+        Session::flash('error', $validation['msg']);
         return $this->coursePage($deptId, $courseId);
       }
 
-      $c = Course::find($courseId);
-      if (!$c) {
-        Session::flash('error', 'No such course!');
-        return $this->coursePage($deptId, $courseId);
-      }
-
-      if ($c->department_id != $deptId || $f->department_id != $deptId) {
-        // Error condition
-        Session::flash('error', 'Specified course and faculty members must belong to specified department');
-        return $this->coursePage($deptId, $courseId);
-      }
 
       // Verify that this assignment won't exceed faculty assignment capacity
       // A faculty may not have more than three teaching assignments
       $q = 'select count(*) as assign_ct from course_offerings '
            .'where faculty_member_id=:facId';
       $r = DB::select(DB::raw($q), array('facId' => $facId));
-      //dump($r);
+      $f = $validation['facultyMember'];
       if ($r[0]->assign_ct > 2) {
-        // Error condition
-        Session::flash('error', 'Faculty member '.$f->name.' has exceeded the limit for teaching assignments');
+        Session::flash('error', 'Faculty member '.$f->name
+          .' has exceeded the limit for teaching assignments');
         return $this->coursePage($deptId, $courseId);
       }
 
@@ -95,6 +97,25 @@ class RegistrarController extends Controller
       $o->save();
 
       return $this->coursePage($deptId, $courseId);
+    }
+
+    function updateOffering(Request $request) {
+      $deptId = $request->input('deptId');
+      $courseId = $request->input('courseId');
+      $offeringId = $request->input('offeringId');
+
+      $v = $this->validation(array(
+        'deptId'=>$deptId,
+        'courseId'=>$courseId,
+        'offeringId'=>$offeringId
+      ));
+
+      $o = $v['offering'];
+      $o->active = !$o->active;
+      $o->save();
+
+      return $this->coursePage($deptId, $courseId);
+
     }
 
     private function deptPage($deptId) {
@@ -133,21 +154,45 @@ class RegistrarController extends Controller
         return $this->deptPage($deptId);
       }
 
-      //$department = Department::find($deptId);
       $department = $v['dept'];
-      //$course = Course::find($courseId);
       $course = $v['course'];
       $course->load('course_offerings');
 
-      $faculty = FacultyMember::where('department_id','=',$deptId)
-        ->join('users', function($join) {
-          $join->on('faculty_members.user_id','=','users.id');
-        })->get();
+      $q = 'select f.id, u.name, count(o.id) as assgn_ct '
+            .'from faculty_members f '
+            .'join users u on f.user_id = u.id '
+            .'left join course_offerings o on o.faculty_member_id = f.id '
+            .'and o.active = true '
+            .'where f.department_id = :deptId '
+            .'group by f.id, u.name '
+            .'order by u.name';
+      $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
+
+      $fNames = array();
+      $available = 0;
+      foreach ($faculty as $f) {
+        $fNames[$f->id] = $f->name;
+        if ($f->assgn_ct < 3) $available += 1;
+      }
+
+      $q = 'select o.id, count(e.id) as enrl_ct '
+            .'from course_offerings o '
+            .'left join enrollments e on e.course_offering_id = o.id '
+            .'where o.course_id=:courseId '
+            .'group by o.id';
+      $enrollments = DB::select(DB::raw($q), array('courseId' => $courseId));
+      $enroll_counts = array();
+      foreach ($enrollments as $e) {
+        $enroll_counts[$e->id] = $e->enrl_ct;
+      }
 
       return view('registrar.course')
+        ->with('available', $available)
         ->with('dept', $department)
         ->with('faculty', $faculty)
-        ->with('course', $course);
+        ->with('course', $course)
+        ->with('enrollment_counts', $enroll_counts)
+        ->with('faculty_names', $fNames);
     }
 
     private function check($result, $key, $message, $obj) {
@@ -199,15 +244,68 @@ class RegistrarController extends Controller
         if (!$result['valid']) {
           return $result;
         }
-        $fac = FacultyMember::where('faculty_members.id', $facId)
+        $fac = FacultyMember::where('faculty_members.id', $params['facId'])
           ->join('users', function($join) {
             $join->on('faculty_members.user_id','=','users.id');
           })->first();
-        $result = $this->check($result, 'faculty', 'No such faculty member!', $fac);
+        $result = $this->check($result, 'facultyMember', 'No such faculty member!', $fac);
         if (!$result['valid']) {
           return $result;
         }
       }
+
+      if (array_key_exists('offeringId', $params)) {
+        $result = $this->num_check($result, $params['offeringId'], 'Course Offering ID');
+        if (!$result['valid']) {
+          return $result;
+        }
+        $o = CourseOffering::find($params['offeringId']);
+        $result = $this->check($result, 'offering', 'No such course offering!', $o);
+        if (!$result['valid']) {
+          return $result;
+        }
+      }
+
+      // Ensure agreement across components
+      $d = array_key_exists('dept', $result) ? $result['dept'] : false;
+      $c = array_key_exists('course', $result) ? $result['course'] : false;
+      $f = array_key_exists('facultyMember', $result) ? $result['facultyMember'] : false;
+      $o = array_key_exists('offering', $result) ? $result['offering'] : false;
+      if ($d) {
+        if ($c && $d->id != $c->department_id) {
+          $result['valid'] = false;
+          $result['msg'] = 'Course '.$c->course_name.' is not offered by the '
+            .$d->dept_desc.' department.';
+          return $result;
+        }
+        if ($f && $d->id != $f->department_id) {
+          $result['valid'] = false;
+          $result['msg'] = 'Faculty Member '.$f->name.' does not teach in the '
+            .$d->dept_desc.' department.';
+          return $result;
+        }
+        if ($f && $c && $f->department_id != $c->department_id) {
+          $result['valid'] = false;
+          $result['msg'] = 'Faculty Member '.$f->name.' cannot be assigned to teach '
+            .$c->course_name;
+          return $result;
+        }
+      }
+
+      // If course and faculty are both specified, they must belong to the
+      // same department.
+      if (array_key_exists('facultyMember', $result)
+        && array_key_exists('course', $result)) {
+          $f = $result['facultyMember'];
+          $c = $result['course'];
+          $d = $result['dept'];
+          if ($f->department_id != $c->department_id) {
+          $result['valid'] = false;
+          $result['msg'] = 'Faculty Member '.$f->name.' may not be assigned to '
+            .'courses in the '.$d->dept_desc.' department.';
+        }
+      }
+
       return $result;
     }
 
