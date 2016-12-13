@@ -6,6 +6,16 @@
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
 
+              <div class="panel-heading">
+                @yield('breadcrumb')
+              </div>
+
+              <div class="panel-heading">
+                <p style="font-size:0.8em;">
+                  @yield('summary')
+                </p>
+              </div>
+
               @if (Session::has('success'))
               <div class="panel-heading"
                 style="background-color:#d8ffd8; color:#006f00">
@@ -20,14 +30,6 @@
                 </div>
               @endif
 
-                <div class="panel-heading">
-                  @yield('breadcrumb')
-                </div>
-                <div class="panel-heading">
-                  <p style="font-size:0.8em;">
-                    @yield('summary')
-                  </p>
-                </div>
                 @yield('pagedata')
             </div>
         </div>

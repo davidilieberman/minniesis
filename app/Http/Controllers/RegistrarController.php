@@ -109,7 +109,7 @@ class RegistrarController extends Controller
       $f['person'] = $fp;
       $d = Department::find($c->department_id);
 
-      $q = 'select u.name, s.id, s.year '
+      $q = 'select u.name, s.id, s.year, u.email, u.id '
           .'from users u, students s, enrollments e '
           .'where u.id = s.user_id '
           .'and s.id = e.student_id '
@@ -189,7 +189,7 @@ class RegistrarController extends Controller
         Session::flash('error', 'Please supply a name to search!');
         return $this->showOffering($request);
       }
-      $q = 'select s.id as student_id, s.year, u.name '
+      $q = 'select s.id as student_id, s.year, u.name, u.email '
             .'from students s, users u where s.user_id = u.id '
             .'and lower(u.name) like :name '
             .'and s.id not in (select student_id from enrollments where course_offering_id = :offeringId) '
@@ -287,9 +287,19 @@ class RegistrarController extends Controller
         $a['course_code'] < $b['course_code'] ? -1 : 1;
       });
 
+      $c = array();
+      foreach($courses as $course) {
+        $offerings = array_filter($course['course_offerings'], function($co) {
+          return $co['active'];
+        });
+        $course['active_offerings'] = $offerings;
+        array_push($c, $course);
+      }
+
       return view('registrar.dept')
+        ->with('faculty', $this->getDeptFaculty($deptId))
         ->with('dept', $department)
-        ->with('courses', $courses);
+        ->with('courses', $c);
     }
 
     private function coursePage($deptId, $courseId) {
@@ -308,15 +318,7 @@ class RegistrarController extends Controller
       $course = $v['course'];
       $course->load('course_offerings');
 
-      $q = 'select f.id, u.name, count(o.id) as assgn_ct '
-            .'from faculty_members f '
-            .'join users u on f.user_id = u.id '
-            .'left join course_offerings o on o.faculty_member_id = f.id '
-            .'and o.active = true '
-            .'where f.department_id = :deptId '
-            .'group by f.id, u.name '
-            .'order by u.name';
-      $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
+      $faculty = $this->getDeptFaculty($deptId);
 
       $fNames = array();
       $available = 0;
@@ -343,6 +345,19 @@ class RegistrarController extends Controller
         ->with('course', $course)
         ->with('enrollment_counts', $enroll_counts)
         ->with('faculty_names', $fNames);
+    }
+
+    private function getDeptFaculty($deptId) {
+      $q = 'select f.id, u.name, u.email, count(o.id) as assgn_ct '
+            .'from faculty_members f '
+            .'join users u on f.user_id = u.id '
+            .'left join course_offerings o on o.faculty_member_id = f.id '
+            .'and o.active = true '
+            .'where f.department_id = :deptId '
+            .'group by f.id, u.name '
+            .'order by u.name';
+      $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
+      return $faculty;
     }
 
     private function check($result, $key, $message, $obj) {

@@ -41,6 +41,9 @@ Registrar: <a href="/registrar">Departments</a> ::
         <td>
           {{$st->name}}
         </td>
+        <td>
+          {{$st->email}}
+        </td>
       </tr>
     </form>
   @endforeach
@@ -57,7 +60,9 @@ Registrar: <a href="/registrar">Departments</a> ::
 @else
 <table class="table table-striped">
   <tr>
-    <th>Student Name</th>
+    <th>Student ID</th>
+    <th>Name</th>
+    <th>Email Address</th>
     <th>Year</th>
     <th>&nbsp;</th>
   </tr>
@@ -67,7 +72,9 @@ Registrar: <a href="/registrar">Departments</a> ::
       <input type="hidden" name="_method" value="DELETE"/>
       <input type="hidden" name="studentId" value="{{ $student->id }}"/>
       <tr>
+        <td>{{ $student->id }}</td>
         <td>{{ $student->name }}</td>
+        <td>{{ $student->email }}</td>
         <td>{{ $student->year }}</td>
         <td><input type="submit" value="Unenroll"/></td>
       </tr>
