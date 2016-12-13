@@ -1,10 +1,10 @@
 @extends('registrar.app')
 
 @section('breadcrumb')
-Registrar: <a href="/registrar">Departments</a> ::
-  <a href="/registrar/dept/{{ $dept->id }}"
+Registrar: <a href="/registrar/depts">Departments</a> ::
+  <a href="/registrar/depts/{{ $dept->id }}"
     >{{ $dept->dept_desc }}</a> ::
-  <a href="/registrar/course/{{ $dept->id }}/{{ $course->id }}"
+  <a href="/registrar/courses/{{ $dept->id }}/{{ $course->id }}"
     >{{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})</a> ::
   Offering {{ $offering->instance_number }} ({{$faculty_member->person->name}}, Instructor)
 @endsection

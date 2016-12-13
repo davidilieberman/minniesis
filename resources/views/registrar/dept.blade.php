@@ -1,7 +1,7 @@
 @extends('registrar.app')
 
 @section('breadcrumb')
-Registrar: <a href="/registrar">Departments</a> ::
+Registrar: <a href="/registrar/depts">Departments</a> ::
   {{ $dept->dept_desc }}
 @endsection
 
@@ -24,7 +24,7 @@ Registrar: <a href="/registrar">Departments</a> ::
         @foreach( $courses as $course )
         <tr>
           <td>
-              <a href="/registrar/course/{{$dept->id}}/{{$course['id']}}"
+              <a href="/registrar/courses/{{$dept->id}}/{{$course['id']}}"
                 >{{ $course['course_name'] }}</a>
           </td>
           <td>{{ $course['course_code'] }}</td>

@@ -2,7 +2,7 @@
 
 @section('breadcrumb')
 Registrar: <a href="/registrar">Departments</a> ::
-  <a href="/registrar/dept/{{ $dept->id }}"
+  <a href="/registrar/depts/{{ $dept->id }}"
     >{{ $dept->dept_desc }}</a> ::
   {{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})
 @endsection

@@ -23,7 +23,7 @@
   @foreach($depts as $dept)
     <tr>
       <td>
-        <a href="/registrar/dept/{{ $dept->id }}"
+        <a href="/registrar/depts/{{ $dept->id }}"
           >{{ $dept->dept_desc }}</a>
       </td>
       <td>{{ $dept->dept_code }}</td>

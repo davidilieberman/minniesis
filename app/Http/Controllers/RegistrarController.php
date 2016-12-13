@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+define("MAX_CREDITS",     9.0);
+define("MAX_ASSIGNMENTS", 3);
+
 use Illuminate\Http\Request;
 use Session;
 
@@ -16,21 +19,9 @@ use Illuminate\Support\Facades\DB;
 
 class RegistrarController extends Controller
 {
-    function listDepts() {
-
-      $q = 'select d.id, d.dept_code, d.dept_desc, '
-            . 'count(c.id) as course_count, '
-            . 'count(co.id) as offering_count '
-            . 'from departments d '
-            . 'join courses c on c.department_id = d.id '
-            . 'left join course_offerings co on co.course_id = c.id '
-            . 'group by d.id, d.dept_code, d.dept_desc '
-            . 'order by d.dept_desc';
-
-      $depts = DB::select(DB::raw($q));
-
+    function deptsIndex() {
       return view('registrar.depts')
-        ->with('depts', $depts);
+        ->with('depts', $this->getDepartments());
     }
 
     function showDept(Request $request) {
@@ -52,73 +43,27 @@ class RegistrarController extends Controller
       return $this->saveOffering($deptId, $courseId, $facId);
     }
 
-    private function saveOffering($deptId, $courseId, $facId) {
-      $validation = $this->validation(array(
-        'deptId'=>$deptId,
-        'courseId'=>$courseId,
-        'facId'=>$facId
-      ));
-
-      if (!$validation['valid']) {
-        Session::flash('error', $validation['msg']);
-        return $this->coursePage($deptId, $courseId);
-      }
-
-
-      // Verify that this assignment won't exceed faculty assignment capacity
-      // A faculty may not have more than three teaching assignments
-      $q = 'select count(*) as assign_ct from course_offerings '
-           .'where faculty_member_id=:facId '
-           .'and active=true';
-      $r = DB::select(DB::raw($q), array('facId' => $facId));
-      $f = $validation['facultyMember'];
-      if ($r[0]->assign_ct > 2) {
-        Session::flash('error', 'Faculty member '.$f->name
-          .' has exceeded the limit for teaching assignments');
-        return $this->coursePage($deptId, $courseId);
-      }
-
-      // Get the instance number for the new offering;
-      $q = 'select (ifnull(max(instance_number),0) + 1) '
-          .'as num from course_offerings where course_id=:courseId';
-      $r = DB::select(DB::raw($q), array('courseId' => $courseId));
-      $instanceNum = $r[0]->num;
-
-      $o = new CourseOffering();
-      $o->course_id = $courseId;
-      $o->faculty_member_id = $facId;
-      $o->instance_number = $instanceNum;
-      $o->save();
-
-      return $this->coursePage($deptId, $courseId);
-    }
-
     function showOffering(Request $request) {
 
       $offeringId = $request->route('offeringId');
 
+      // If we received a bad course offering id, error up to the departments index
       $o = CourseOffering::find($offeringId);
       if (!$o) {
         Session::flash('error', 'No such course offering!');
-        return $this->listDepts();
+        return $this->deptsIndex();
       }
 
+      // Climb the tree to load the offering's components
       $c = Course::find($o->course_id);
       $f = FacultyMember::find($o->faculty_member_id);
       $fp = User::find($f->user_id);
       $f['person'] = $fp;
       $d = Department::find($c->department_id);
 
-      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, e.grade '
-          .'from users u, students s, enrollments e '
-          .'where u.id = s.user_id '
-          .'and s.id = e.student_id '
-          .'and e.course_offering_id = :offeringId '
-          .'order by u.name';
-      $e = DB::select(DB::raw($q), array(
-        'offeringId'=>$offeringId
-      ));
+      $e = $this->getOfferingEnrollments($offeringId);
 
+      // If there are student search results, push them into the view
       $sr = false;
       $term = false;
       if (Session::has('student_search_results')) {
@@ -136,6 +81,10 @@ class RegistrarController extends Controller
         ->with('enrollments', $e);
     }
 
+    /**
+    * The only we change we support to a defined CourseOffering is to flip its status from active to inactive
+    * or vice-versa.
+    */
     function updateOffering(Request $request) {
       $deptId = $request->input('deptId');
       $courseId = $request->input('courseId');
@@ -152,10 +101,10 @@ class RegistrarController extends Controller
       }
       $o = $v['offering'];
 
-      // Verify that activating this offering won't put the
-      // faculty member over the assignment limit
       $c = 0;
       if (!$o->active) {
+        // Verify that activating this offering won't put the
+        // faculty member over the assignment limit
         $q = 'select count(o.id) as assign_ct from course_offerings o '
               .'where o.active = true '
               .'and o.faculty_member_id = '
@@ -171,6 +120,7 @@ class RegistrarController extends Controller
       }
 
       if ($c > 0) {
+        // We are about to deactive the course; unenroll its students
         Session::flash('success','Course offering deactivated; '.$c.' students unenrolled.');
       }
       $o->active = !$o->active;
@@ -236,7 +186,7 @@ class RegistrarController extends Controller
 
       if (!$r[0]->offering_exists) {
         Session::flash('error', 'Received request to enroll a student in a non-existing course offering!');
-        return $this->listDepts();
+        return $this->deptsIndex();
       }
 
       if (!$r[0]->student_exists) {
@@ -249,15 +199,18 @@ class RegistrarController extends Controller
         return $this->showOffering($request);
       }
 
-      //TODO use getEnrolledCredits($studentId) to verify that enrollment would not push student beyond
-      //TODO enrollment limit of 9 credits
-
-      $o = CourseOffering::find($offeringId);
-      $e = new Enrollment();
-      $e->student_id = $studentId;
-      $o->enrollments()->save($e);
-
-      Session::flash('success', 'Student enrolled in course offering');
+      // Verify that enrollment would not push student beyond
+      // enrollment limit of 9 credits
+      $credits = $this->getEnrollmentCredits($studentId);
+      $courseCredit = Course::where('id',$o['course_id'])->pluck('credits')->first();
+      if ($credits + $courseCredit > MAX_CREDITS) {
+        Session::flash('error', 'Enrollment would place student over the maximum allowable credit limit.');
+      } else {
+        $e = new Enrollment();
+        $e->student_id = $studentId;
+        $o->enrollments()->save($e);
+        Session::flash('success', 'Student enrolled in course offering');
+      }
       return $this->showOffering($request);
     }
 
@@ -284,9 +237,6 @@ class RegistrarController extends Controller
     }
 
 
-
-
-
     private function deptPage($deptId) {
 
       $validation = $this->validation ( array(
@@ -295,7 +245,7 @@ class RegistrarController extends Controller
 
       if (!$validation['valid']) {
         Session::flash('error', $validation['msg']);
-        return $this->listDepts();
+        return $this->deptsIndex();
       }
 
       $department = $validation['dept'];
@@ -366,11 +316,80 @@ class RegistrarController extends Controller
         ->with('faculty_names', $fNames);
     }
 
+    private function saveOffering($deptId, $courseId, $facId) {
+      $validation = $this->validation(array(
+        'deptId'=>$deptId,
+        'courseId'=>$courseId,
+        'facId'=>$facId
+      ));
+
+      if (!$validation['valid']) {
+        Session::flash('error', $validation['msg']);
+        return $this->coursePage($deptId, $courseId);
+      }
+
+
+      // Verify that this assignment won't exceed faculty assignment capacity
+      // A faculty may not have more than three teaching assignments
+      $q = 'select count(*) as assign_ct from course_offerings '
+           .'where faculty_member_id=:facId '
+           .'and active=true';
+      $r = DB::select(DB::raw($q), array('facId' => $facId));
+      $f = $validation['facultyMember'];
+      if ($r[0]->assign_ct > 2) {
+        Session::flash('error', 'Faculty member '.$f->name
+          .' has exceeded the limit for teaching assignments');
+        return $this->coursePage($deptId, $courseId);
+      }
+
+      // Get the instance number for the new offering;
+      $q = 'select (ifnull(max(instance_number),0) + 1) '
+          .'as num from course_offerings where course_id=:courseId';
+      $r = DB::select(DB::raw($q), array('courseId' => $courseId));
+      $instanceNum = $r[0]->num;
+
+      $o = new CourseOffering();
+      $o->course_id = $courseId;
+      $o->faculty_member_id = $facId;
+      $o->instance_number = $instanceNum;
+      $o->save();
+
+      return $this->coursePage($deptId, $courseId);
+    }
+
+
+    private function getOfferingEnrollments($offeringId) {
+      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, e.grade '
+          .'from users u, students s, enrollments e '
+          .'where u.id = s.user_id '
+          .'and s.id = e.student_id '
+          .'and e.course_offering_id = :offeringId '
+          .'order by u.name';
+      $e = DB::select(DB::raw($q), array(
+        'offeringId'=>$offeringId
+      ));
+      return $e;
+    }
+
+
     private function getEnrollmentCredits($studentId) {
-      $q = 'SELECT sum(c.credits) FROM courses c, course_offerings o, enrollments e '
-        .'WHERE c.id = o.course_id AND o.id = e.course_offering_id AND e.student_id = :studentId'
+      $q = 'SELECT ifnull(sum(c.credits),0) as total FROM courses c, course_offerings o, enrollments e '
+        .'WHERE c.id = o.course_id AND o.id = e.course_offering_id AND e.student_id = :studentId';
       $r = DB::select(DB::raw($q), array('studentId' => $studentId));
-      return r[0];
+      return $r[0]->total;
+    }
+
+    private function getDepartments() {
+      $q = 'SELECT d.id, d.dept_code, d.dept_desc, '
+            . 'count(c.id) as course_count, '
+            . 'count(co.id) as offering_count '
+            . 'FROM departments d '
+            . 'join courses c on c.department_id = d.id '
+            . 'left join course_offerings co on co.course_id = c.id '
+            . 'group by d.id, d.dept_code, d.dept_desc '
+            . 'order by d.dept_desc';
+
+      return DB::select(DB::raw($q));
     }
 
     private function getDeptFaculty($deptId) {
@@ -404,8 +423,15 @@ class RegistrarController extends Controller
       return $result;
     }
 
+    /**
+    * Custom validation to reconcile the input components associated with
+    * with Registrar activities.
+    */
     private function validation($params) {
       $result = array( 'valid' => true );
+
+      // We were passed a department ID. If this is not valid, we need to
+      // return to the department selection page.
       if (array_key_exists('deptId', $params)) {
         $result = $this->num_check($result, $params['deptId'], 'Department ID');
         if (!$result['valid']) {

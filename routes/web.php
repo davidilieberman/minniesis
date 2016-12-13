@@ -20,32 +20,40 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index');
 
-Route::get('/registrar', 'RegistrarController@listDepts')
+Route::get('/registrar/depts', 'RegistrarController@deptsIndex')
+  ->name('depts.index')
   ->middleware('authz:RGR');
 
-Route::get('/registrar/dept/{deptId}', 'RegistrarController@showDept')
+Route::get('/registrar/depts/{deptId}', 'RegistrarController@showDept')
+  ->name('depts.show')
   ->middleware('authz:RGR');
 
-Route::get('/registrar/course/{deptId}/{courseId}', 'RegistrarController@showCourse')
+Route::get('/registrar/courses/{deptId}/{courseId}', 'RegistrarController@showCourse')
+  ->name('courses.show')
   ->middleware('authz:RGR');
 
-Route::get('/registrar/offering/{offeringId}',
-  'RegistrarController@showOffering')
+Route::get('/registrar/offering/{offeringId}', 'RegistrarController@showOffering')
+  ->name('offerings.show')
   ->middleware('authz:RGR');
 
 Route::post('/registrar/offering', 'RegistrarController@storeOffering')
+  ->name('offerings.store')
   ->middleware('authz:RGR');
 
 Route::put('/registrar/offering', 'RegistrarController@updateOffering')
+  ->name('offerings.update')
   ->middleware('authz:RGR');
 
 Route::get('/registrar/enroll/{offeringId}', 'RegistrarController@searchStudents')
+  ->name('enrollments.students.search')
   ->middleware('authz:RGR');
 
 Route::post('/registrar/enroll/{offeringId}', 'RegistrarController@enrollStudent')
+  ->name('enrollments.store')
   ->middleware('authz:RGR');
 
 Route::delete('/registrar/enroll/{offeringId}', 'RegistrarController@unenrollStudent')
+  ->name('enrollemnts.destoy')
   ->middleware('authz:RGR');
 
 Route::get('/faculty', function() {
