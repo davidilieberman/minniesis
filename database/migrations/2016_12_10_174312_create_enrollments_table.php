@@ -23,7 +23,7 @@ class CreateEnrollmentsTable extends Migration
             $table->integer('student_id')->unsigned();
             $table->foreign('student_id')->references('id')->on('students');
 
-            $table->string('grade')->nullable();
+            //$table->string('grade')->nullable();
         });
     }
 

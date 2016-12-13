@@ -1,4 +1,4 @@
-@extends('registrar.app')
+@extends('layouts.sis')
 
 @section('breadcrumb')
 Registrar: <a href="/registrar/depts">Departments</a> ::
@@ -6,7 +6,7 @@ Registrar: <a href="/registrar/depts">Departments</a> ::
     >{{ $dept->dept_desc }}</a> ::
   <a href="/registrar/courses/{{ $dept->id }}/{{ $course->id }}"
     >{{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})</a> ::
-  Offering {{ $offering->instance_number }} ({{$faculty_member->person->name}}, Instructor)
+  Offering {{ $offering->instance_number }}
 @endsection
 
 @section('summary')
@@ -14,6 +14,10 @@ Registrar: <a href="/registrar/depts">Departments</a> ::
 @endsection
 
 @section('pagedata')
+
+<div class="panel-heading">
+ <span style='font-weight:bold;'>{{$faculty_member->person->name}}, Instructor</span>
+</div>
 
 <div class="panel-heading">
 @if ( count($enrollments) < $course->capacity)

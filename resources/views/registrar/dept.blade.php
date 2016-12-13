@@ -1,4 +1,4 @@
-@extends('registrar.app')
+@extends('layouts.sis')
 
 @section('breadcrumb')
 Registrar: <a href="/registrar/depts">Departments</a> ::

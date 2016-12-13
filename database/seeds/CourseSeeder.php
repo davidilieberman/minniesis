@@ -3,6 +3,13 @@
 use Illuminate\Database\Seeder;
 use App\Department;
 use App\Course;
+use App\CourseOffering;
+use App\Enrollment;
+use App\Grade;
+use App\FacultyMember;
+use App\Student;
+use App\User;
+
 
 class CourseSeeder extends Seeder
 {
@@ -77,6 +84,52 @@ class CourseSeeder extends Seeder
             $c->capacity = $course[3];
             $dept->courses()->save($c);
           }
+        }
+
+        $courses = [
+          ['BIO', '101', 'stewie'],
+          ['CHM', '101', 'babs']
+        ];
+
+        $students = array(
+          'rentwhistle' => ['A', 'A-'],
+          'upinelli' => ['B+', 'B'],
+          'mwagner' => ['B','B'],
+          'kmiller' => ['B-', 'C']);
+
+        $ind = 0;
+        foreach ($courses as $course) {
+          $u = User::where('email', $course[2].'@fac.nwr.edu')->first();
+          $f = FacultyMember::where('user_id', $u->id)->first();
+          $d = Department::where('dept_code', $course[0])->first();
+          $c = Course::where([
+            ['department_id', $d->id],
+            ['course_code', $course[1]]
+          ])->first();
+
+          CourseOffering::create([
+            'instance_number' => 1,
+            'course_id' => $c->id,
+            'faculty_member_id' => $f->id
+          ]);
+
+          $co = CourseOffering::where([
+            ['course_id', $c->id],
+            ['instance_number', 1]
+          ])->first();
+
+
+          foreach ($students as $s => $g) {
+            $su = User::where('email', $s.'@nwr.edu')->first();
+            $grade = Grade::where('grade', $g[$ind])->first();
+            $student = Student::where('user_id', $su->id)->first();
+            Enrollment::create([
+              'student_id' => $student->id,
+              'grade_id' => $grade->id,
+              'course_offering_id' => $co->id
+            ]);
+          }
+          $ind ++;
         }
     }
 }

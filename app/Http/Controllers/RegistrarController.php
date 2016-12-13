@@ -48,9 +48,12 @@ class RegistrarController extends Controller
       $offeringId = $request->route('offeringId');
 
       // If we received a bad course offering id, error up to the departments index
-      $o = CourseOffering::find($offeringId);
+      $o = CourseOffering::where([
+          ['id', $offeringId],
+          ['active', true]
+        ])->first();
       if (!$o) {
-        Session::flash('error', 'No such course offering!');
+        Session::flash('error', 'No matching active course offering!');
         return $this->deptsIndex();
       }
 
@@ -307,12 +310,14 @@ class RegistrarController extends Controller
         $enroll_counts[$e->id] = $e->enrl_ct;
       }
 
+      $go = $this->getGradedEnrollmentCounts($courseId);
       return view('registrar.course')
         ->with('available', $available)
         ->with('dept', $department)
         ->with('faculty', $faculty)
         ->with('course', $course)
         ->with('enrollment_counts', $enroll_counts)
+        ->with('graded_offerings', $go)
         ->with('faculty_names', $fNames);
     }
 
@@ -359,11 +364,11 @@ class RegistrarController extends Controller
 
 
     private function getOfferingEnrollments($offeringId) {
-      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, e.grade '
-          .'from users u, students s, enrollments e '
-          .'where u.id = s.user_id '
-          .'and s.id = e.student_id '
-          .'and e.course_offering_id = :offeringId '
+      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, g.grade '
+          .'from users u join students s on s.user_id = u.id '
+          .'join enrollments e on e.student_id = s.id '
+          .'left join grades g on e.grade_id = g.id '
+          .'where e.course_offering_id = :offeringId '
           .'order by u.name';
       $e = DB::select(DB::raw($q), array(
         'offeringId'=>$offeringId
@@ -371,6 +376,18 @@ class RegistrarController extends Controller
       return $e;
     }
 
+    private function getGradedEnrollmentCounts($courseId) {
+        $q = 'SELECT o.id as course_offering_id, COUNT(e.id) as graded '
+        .'FROM course_offerings o LEFT JOIN enrollments e '
+        .'ON e.course_offering_id = o.id AND e.grade_id IS NOT NULL '
+        .'WHERE o.course_id = :courseId GROUP BY o.id';
+        $r = DB::select(DB::raw($q), array('courseId' => $courseId));
+        $arr = array();
+        foreach ($r as $result) {
+          $arr[$result->course_offering_id] = $result->graded;
+        }
+        return $arr;
+    }
 
     private function getEnrollmentCredits($studentId) {
       $q = 'SELECT ifnull(sum(c.credits),0) as total FROM courses c, course_offerings o, enrollments e '

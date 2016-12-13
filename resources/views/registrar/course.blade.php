@@ -1,7 +1,7 @@
-@extends('registrar.app')
+@extends('layouts.sis')
 
 @section('breadcrumb')
-Registrar: <a href="/registrar">Departments</a> ::
+Registrar: <a href="/registrar/depts">Departments</a> ::
   <a href="/registrar/depts/{{ $dept->id }}"
     >{{ $dept->dept_desc }}</a> ::
   {{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})
@@ -85,8 +85,10 @@ Registrar: <a href="/registrar">Departments</a> ::
           <input type="hidden" name="deptId" value="{{ $dept->id }}"/>
           <input type="hidden" name="courseId" value="{{ $course->id }}"/>
           <input type="hidden" name="offeringId" value="{{ $offering->id }}"/>
-          @if ( $offering->active )
+          @if ( $offering->active and !$graded_offerings[$offering->id] )
             <input type="submit" value="Deactivate"/>
+          @elseif ( $offering->active and $graded_offerings[$offering->id])
+              Cannot deactivate course offering after grades are entered.
           @else
             <input type="submit" value="Reactivate"/>
           @endif

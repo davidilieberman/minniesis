@@ -1,4 +1,4 @@
-@extends('registrar.app')
+@extends('layouts.sis')
 
 @section('breadcrumb')
 

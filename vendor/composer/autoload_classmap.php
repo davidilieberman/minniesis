@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'ConnectEnrollmentsAndGrades' => $baseDir . '/database/migrations/2016_12_13_180608_connect_enrollments_and_grades.php',
     'ConnectUsersAndSisRoles' => $baseDir . '/database/migrations/2016_12_09_192756_connect_users_and_sis_roles.php',
     'CourseSeeder' => $baseDir . '/database/seeds/CourseSeeder.php',
     'CreateCourse' => $baseDir . '/database/migrations/2016_12_10_125138_create_course.php',
@@ -13,6 +14,7 @@ return array(
     'CreateDepartmentsTable' => $baseDir . '/database/migrations/2016_12_09_204343_create_departments_table.php',
     'CreateEnrollmentsTable' => $baseDir . '/database/migrations/2016_12_10_174312_create_enrollments_table.php',
     'CreateFacultyTable' => $baseDir . '/database/migrations/2016_12_10_020649_create_faculty_table.php',
+    'CreateGradesTable' => $baseDir . '/database/migrations/2016_12_13_173706_create_grades_table.php',
     'CreatePasswordResetsTable' => $baseDir . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
     'CreateSisRolesTable' => $baseDir . '/database/migrations/2016_12_09_182105_create_sis_roles_table.php',
     'CreateStudentsTable' => $baseDir . '/database/migrations/2016_12_10_025600_create_students_table.php',
@@ -23,6 +25,7 @@ return array(
     'File_Iterator' => $vendorDir . '/phpunit/php-file-iterator/src/Iterator.php',
     'File_Iterator_Facade' => $vendorDir . '/phpunit/php-file-iterator/src/Facade.php',
     'File_Iterator_Factory' => $vendorDir . '/phpunit/php-file-iterator/src/Factory.php',
+    'GradesTableSeeder' => $baseDir . '/database/seeds/GradesTableSeeder.php',
     'Hamcrest\\Arrays\\IsArray' => $vendorDir . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArray.php',
     'Hamcrest\\Arrays\\IsArrayContaining' => $vendorDir . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArrayContaining.php',
     'Hamcrest\\Arrays\\IsArrayContainingInAnyOrder' => $vendorDir . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArrayContainingInAnyOrder.php',

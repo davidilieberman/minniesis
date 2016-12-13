@@ -278,6 +278,7 @@ class ComposerStaticInit210517ad491ad914be68cc9894ee64cd
     );
 
     public static $classMap = array (
+        'ConnectEnrollmentsAndGrades' => __DIR__ . '/../..' . '/database/migrations/2016_12_13_180608_connect_enrollments_and_grades.php',
         'ConnectUsersAndSisRoles' => __DIR__ . '/../..' . '/database/migrations/2016_12_09_192756_connect_users_and_sis_roles.php',
         'CourseSeeder' => __DIR__ . '/../..' . '/database/seeds/CourseSeeder.php',
         'CreateCourse' => __DIR__ . '/../..' . '/database/migrations/2016_12_10_125138_create_course.php',
@@ -285,6 +286,7 @@ class ComposerStaticInit210517ad491ad914be68cc9894ee64cd
         'CreateDepartmentsTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_09_204343_create_departments_table.php',
         'CreateEnrollmentsTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_10_174312_create_enrollments_table.php',
         'CreateFacultyTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_10_020649_create_faculty_table.php',
+        'CreateGradesTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_13_173706_create_grades_table.php',
         'CreatePasswordResetsTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
         'CreateSisRolesTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_09_182105_create_sis_roles_table.php',
         'CreateStudentsTable' => __DIR__ . '/../..' . '/database/migrations/2016_12_10_025600_create_students_table.php',
@@ -295,6 +297,7 @@ class ComposerStaticInit210517ad491ad914be68cc9894ee64cd
         'File_Iterator' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Iterator.php',
         'File_Iterator_Facade' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Facade.php',
         'File_Iterator_Factory' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Factory.php',
+        'GradesTableSeeder' => __DIR__ . '/../..' . '/database/seeds/GradesTableSeeder.php',
         'Hamcrest\\Arrays\\IsArray' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArray.php',
         'Hamcrest\\Arrays\\IsArrayContaining' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArrayContaining.php',
         'Hamcrest\\Arrays\\IsArrayContainingInAnyOrder' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Arrays/IsArrayContainingInAnyOrder.php',
