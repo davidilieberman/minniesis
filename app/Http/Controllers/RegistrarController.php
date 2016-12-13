@@ -249,6 +249,9 @@ class RegistrarController extends Controller
         return $this->showOffering($request);
       }
 
+      //TODO use getEnrolledCredits($studentId) to verify that enrollment would not push student beyond
+      //TODO enrollment limit of 9 credits
+
       $o = CourseOffering::find($offeringId);
       $e = new Enrollment();
       $e->student_id = $studentId;
@@ -361,6 +364,13 @@ class RegistrarController extends Controller
         ->with('course', $course)
         ->with('enrollment_counts', $enroll_counts)
         ->with('faculty_names', $fNames);
+    }
+
+    private function getEnrollmentCredits($studentId) {
+      $q = 'SELECT sum(c.credits) FROM courses c, course_offerings o, enrollments e '
+        .'WHERE c.id = o.course_id AND o.id = e.course_offering_id AND e.student_id = :studentId'
+      $r = DB::select(DB::raw($q), array('studentId' => $studentId));
+      return r[0];
     }
 
     private function getDeptFaculty($deptId) {
