@@ -14,7 +14,7 @@ class CourseOffering extends Model
       return $this->belongsTo('App\Course');
     }
 
-    public function students() {
-      return $this->hasMany('App\Student');
+    public function enrollments() {
+      return $this->hasMany('App\Enrollment');
     }
 }

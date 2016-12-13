@@ -4,7 +4,7 @@
 Registrar: <a href="/registrar">Departments</a> ::
   <a href="/registrar/dept/{{ $dept->id }}"
     >{{ $dept->dept_desc }}</a> ::
-  {{ $course->course_name }}
+  {{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})
 @endsection
 
 @section('summary')
@@ -49,8 +49,21 @@ Registrar: <a href="/registrar">Departments</a> ::
     <th>&nbsp;</th>
   </tr>
   @foreach ( $course->course_offerings as $offering )
+    @if ( !$offering->active )
+    <tr style="background-color:#dadada">
+    @else
     <tr>
-      <td>{{ $offering->instance_number }}</td>
+    @endif
+      <td>
+        @if ( $offering->active )
+        <a href="/registrar/offering/{{ $offering->id }}"
+          >{{ $dept->dept_code }} {{ $course->course_code }} -
+            {{ $offering->instance_number }}</a>
+        @else
+          {{ $dept->dept_code }} {{ $course->course_code }} -
+          {{ $offering->instance_number }}
+        @endif
+      </td>
 
       <td>
         {{ $faculty_names[$offering->faculty_member_id] }}

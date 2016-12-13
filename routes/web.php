@@ -12,7 +12,8 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    //return view('welcome');
+    return redirect('/home');
 });
 
 Auth::routes();
@@ -28,15 +29,24 @@ Route::get('/registrar/dept/{deptId}', 'RegistrarController@showDept')
 Route::get('/registrar/course/{deptId}/{courseId}', 'RegistrarController@showCourse')
   ->middleware('authz:RGR');
 
-Route::get('/registrar/offering/{deptId}/{courseId}/{facId}',
-  'RegistrarController@addOffering')
+Route::get('/registrar/offering/{offeringId}',
+  'RegistrarController@showOffering')
   ->middleware('authz:RGR');
 
 Route::post('/registrar/offering', 'RegistrarController@storeOffering')
   ->middleware('authz:RGR');
 
 Route::put('/registrar/offering', 'RegistrarController@updateOffering')
-  ->middleware('authz:RGR');  
+  ->middleware('authz:RGR');
+
+Route::get('/registrar/enroll/{offeringId}', 'RegistrarController@searchStudents')
+  ->middleware('authz:RGR');
+
+Route::post('/registrar/enroll/{offeringId}', 'RegistrarController@enrollStudent')
+  ->middleware('authz:RGR');
+
+Route::delete('/registrar/enroll/{offeringId}', 'RegistrarController@unenrollStudent')
+  ->middleware('authz:RGR');
 
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";

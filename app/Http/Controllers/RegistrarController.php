@@ -8,7 +8,9 @@ use Session;
 use App\Department;
 use App\Course;
 use App\CourseOffering;
+use App\Enrollment;
 use App\FacultyMember;
+use App\User;
 
 use Illuminate\Support\Facades\DB;
 
@@ -42,15 +44,6 @@ class RegistrarController extends Controller
       return $this->coursePage($deptId, $courseId);
     }
 
-    function addOffering(Request $request) {
-
-      $deptId = $request->route('deptId');
-      $courseId = $request->route('courseId');
-      $facId = $request->route('facId');
-
-      return $this->saveOffering($deptId, $courseId, $facId);
-    }
-
     function storeOffering(Request $request) {
       $deptId = $request->input('deptId');
       $courseId = $request->input('courseId');
@@ -75,7 +68,8 @@ class RegistrarController extends Controller
       // Verify that this assignment won't exceed faculty assignment capacity
       // A faculty may not have more than three teaching assignments
       $q = 'select count(*) as assign_ct from course_offerings '
-           .'where faculty_member_id=:facId';
+           .'where faculty_member_id=:facId '
+           .'and active=true';
       $r = DB::select(DB::raw($q), array('facId' => $facId));
       $f = $validation['facultyMember'];
       if ($r[0]->assign_ct > 2) {
@@ -99,6 +93,49 @@ class RegistrarController extends Controller
       return $this->coursePage($deptId, $courseId);
     }
 
+    function showOffering(Request $request) {
+
+      $offeringId = $request->route('offeringId');
+
+      $o = CourseOffering::find($offeringId);
+      if (!$o) {
+        Session::flash('error', 'No such course offering!');
+        return $this->listDepts();
+      }
+
+      $c = Course::find($o->course_id);
+      $f = FacultyMember::find($o->faculty_member_id);
+      $fp = User::find($f->user_id);
+      $f['person'] = $fp;
+      $d = Department::find($c->department_id);
+
+      $q = 'select u.name, s.id, s.year '
+          .'from users u, students s, enrollments e '
+          .'where u.id = s.user_id '
+          .'and s.id = e.student_id '
+          .'and e.course_offering_id = :offeringId '
+          .'order by u.name';
+      $e = DB::select(DB::raw($q), array(
+        'offeringId'=>$offeringId
+      ));
+
+      $sr = false;
+      $term = false;
+      if (Session::has('student_search_results')) {
+        $sr = Session::pull('student_search_results');
+        $term = Session::pull('search_term');
+      }
+
+      return view('registrar.offering')
+        ->with('search_term', $term)
+        ->with('search_results', $sr)
+        ->with('dept', $d)
+        ->with('course', $c)
+        ->with('faculty_member', $f)
+        ->with('offering', $o)
+        ->with('enrollments', $e);
+    }
+
     function updateOffering(Request $request) {
       $deptId = $request->input('deptId');
       $courseId = $request->input('courseId');
@@ -109,14 +146,127 @@ class RegistrarController extends Controller
         'courseId'=>$courseId,
         'offeringId'=>$offeringId
       ));
-
+      if (!$v['valid']) {
+        Session::flash('error', $v['msg']);
+        return $this->coursePage($deptId, $courseId);
+      }
       $o = $v['offering'];
+
+      // Verify that activating this offering won't put the
+      // faculty member over the assignment limit
+      $c = 0;
+      if (!$o->active) {
+        $q = 'select count(o.id) as assign_ct from course_offerings o '
+              .'where o.active = true '
+              .'and o.faculty_member_id = '
+              .'(select faculty_member_id from course_offerings where id = :courseOfferingId)';
+        $r = DB::select(DB::raw($q), array('courseOfferingId'=>$offeringId));
+        if ($r[0]->assign_ct > 2) {
+          Session::flash('error', 'Reactiving this offering would cause the faculty member '
+            .'to exceed the limit for teaching assignments');
+          return $this->coursePage($deptId, $courseId);
+        }
+      } else {
+        $c = Enrollment::where('course_offering_id', $offeringId)->delete();
+      }
+
+      if ($c > 0) {
+        Session::flash('success','Course offering deactivated; '.$c.' students unenrolled');
+      }
       $o->active = !$o->active;
       $o->save();
 
       return $this->coursePage($deptId, $courseId);
 
     }
+
+    function searchStudents(Request $request) {
+
+      $offeringId = $request->route('offeringId');
+
+      $name = $request->input('name');
+      if (!$name) {
+        Session::flash('error', 'Please supply a name to search!');
+        return $this->showOffering($request);
+      }
+      $q = 'select s.id as student_id, s.year, u.name '
+            .'from students s, users u where s.user_id = u.id '
+            .'and lower(u.name) like :name '
+            .'and s.id not in (select student_id from enrollments where course_offering_id = :offeringId) '
+            .'order by u.name';
+      $r = DB::select(DB::raw($q), array(
+        'name' => '%'.strtolower($name).'%',
+        'offeringId' => $offeringId
+      ));
+      Session::flash('student_search_results', $r);
+      Session::flash('search_term', $name);
+      return $this->showOffering($request);
+
+    }
+
+    function enrollStudent(Request $request) {
+
+      $offeringId = $request->route('offeringId');
+      $this->validate($request, [
+        'studentId' => 'required|numeric|min:1'
+      ]);
+
+      $studentId = $request->input('studentId');
+
+      // Verify that the offering exists and that the student exists and isn't already enrolled in the course
+      $q = 'select '
+              .'(select count(id) from course_offerings where id=:offeringId) as offering_exists, '
+              .'(select count(id) from students where id=:studentId) as student_exists, '
+              .'(select count(id) from enrollments where student_id=:studentId_2 and course_offering_id=:offeringId_2) as enrolled '
+              .'from dual';
+      $r = DB::select(DB::raw($q), array(
+        'offeringId'=> $offeringId,
+        'studentId' => $studentId,
+        'studentId_2' => $studentId,
+        'offeringId_2' => $offeringId
+      ));
+
+      if (!$r[0]->offering_exists) {
+        Session::flash('error', 'Received request to enroll a student in a non-existing course offering!');
+        return $this->listDepts();
+      }
+
+      if (!$r[0]->student_exists) {
+        Session::flash('error', 'Received request to enroll a non-existing student in this course offering!');
+        return $this->showOffering($request);
+      }
+
+      if ($r[0]->enrolled) {
+        Session::flash('error', 'The specified student is already in enrolled in this course offering!');
+        return $this->showOffering($request);
+      }
+
+      $o = CourseOffering::find($offeringId);
+      $e = new Enrollment();
+      $e->student_id = $studentId;
+      $o->enrollments()->save($e);
+
+      Session::flash('success', 'Student enrolled in course offering');
+      return $this->showOffering($request);
+    }
+
+    function unenrollStudent(Request $request) {
+      $offeringId = $request->route('offeringId');
+      $this->validate($request, [
+        'studentId' => 'required|numeric|min:1'
+      ]);
+      $studentId = $request->input('studentId');
+      Enrollment::where([
+          ['student_id', $studentId],
+          ['course_offering_id', $offeringId]
+        ])->delete();
+      Session::flash('success', 'Student unenrolled from course offering');
+      return $this->showOffering($request);
+    }
+
+
+
+
 
     private function deptPage($deptId) {
 

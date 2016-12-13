@@ -6,6 +6,13 @@
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
 
+              @if (Session::has('success'))
+              <div class="panel-heading"
+                style="background-color:#d8ffd8; color:#006f00">
+                  {{ Session::pull('success') }}
+              </div>
+              @endif
+
               @if (Session::has('error') )
                 <div class="panel-heading"
                   style="background-color:#ffd8d8; color:#880000">
