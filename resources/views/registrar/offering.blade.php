@@ -76,7 +76,7 @@ Registrar: <a href="/registrar">Departments</a> ::
         <td>{{ $student->name }}</td>
         <td>{{ $student->email }}</td>
         <td>{{ $student->year }}</td>
-        <td><input type="submit" value="Unenroll"/></td>
+        <td><input type="submit" value="Withdraw"/></td>
       </tr>
     </form>
   @endforeach

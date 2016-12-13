@@ -171,7 +171,7 @@ class RegistrarController extends Controller
       }
 
       if ($c > 0) {
-        Session::flash('success','Course offering deactivated; '.$c.' students unenrolled');
+        Session::flash('success','Course offering deactivated; '.$c.' students unenrolled.');
       }
       $o->active = !$o->active;
       $o->save();
@@ -260,7 +260,7 @@ class RegistrarController extends Controller
           ['student_id', $studentId],
           ['course_offering_id', $offeringId]
         ])->delete();
-      Session::flash('success', 'Student unenrolled from course offering');
+      Session::flash('success', 'Student withdrawn from course offering');
       return $this->showOffering($request);
     }
 
