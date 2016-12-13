@@ -64,19 +64,25 @@ Registrar: <a href="/registrar">Departments</a> ::
     <th>Name</th>
     <th>Email Address</th>
     <th>Year</th>
+    <th>Grade</th>
     <th>&nbsp;</th>
   </tr>
   @foreach ($enrollments as $student)
     <form action="/registrar/enroll/{{$offering->id}}" method="POST">
       {{ csrf_field() }}
       <input type="hidden" name="_method" value="DELETE"/>
-      <input type="hidden" name="studentId" value="{{ $student->id }}"/>
+      <input type="hidden" name="studentId" value="{{ $student->student_id }}"/>
       <tr>
         <td>{{ $student->id }}</td>
         <td>{{ $student->name }}</td>
         <td>{{ $student->email }}</td>
         <td>{{ $student->year }}</td>
-        <td><input type="submit" value="Withdraw"/></td>
+        <td>{{ $student->grade }}</td>
+        <td>
+          @if ( !$student->grade )
+            <input type="submit" value="Withdraw"/>
+          @endif
+        </td>
       </tr>
     </form>
   @endforeach

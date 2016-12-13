@@ -109,7 +109,7 @@ class RegistrarController extends Controller
       $f['person'] = $fp;
       $d = Department::find($c->department_id);
 
-      $q = 'select u.name, s.id, s.year, u.email, u.id '
+      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, e.grade '
           .'from users u, students s, enrollments e '
           .'where u.id = s.user_id '
           .'and s.id = e.student_id '
@@ -183,20 +183,25 @@ class RegistrarController extends Controller
     function searchStudents(Request $request) {
 
       $offeringId = $request->route('offeringId');
+      $o = CourseOffering::find($offeringId);
 
       $name = $request->input('name');
       if (!$name) {
         Session::flash('error', 'Please supply a name to search!');
         return $this->showOffering($request);
       }
+      // Exclude students enrolled in any other offering of the same course
       $q = 'select s.id as student_id, s.year, u.name, u.email '
             .'from students s, users u where s.user_id = u.id '
             .'and lower(u.name) like :name '
-            .'and s.id not in (select student_id from enrollments where course_offering_id = :offeringId) '
+            .'and s.id not in '
+                .'(select student_id from enrollments where course_offering_id in '
+                  .'(select id from course_offerings where course_id = :courseId)'
+                .') '
             .'order by u.name';
       $r = DB::select(DB::raw($q), array(
         'name' => '%'.strtolower($name).'%',
-        'offeringId' => $offeringId
+        'courseId' => $o['course_id']
       ));
       Session::flash('student_search_results', $r);
       Session::flash('search_term', $name);
@@ -207,6 +212,7 @@ class RegistrarController extends Controller
     function enrollStudent(Request $request) {
 
       $offeringId = $request->route('offeringId');
+      $o = CourseOffering::find($offeringId);
       $this->validate($request, [
         'studentId' => 'required|numeric|min:1'
       ]);
@@ -217,13 +223,15 @@ class RegistrarController extends Controller
       $q = 'select '
               .'(select count(id) from course_offerings where id=:offeringId) as offering_exists, '
               .'(select count(id) from students where id=:studentId) as student_exists, '
-              .'(select count(id) from enrollments where student_id=:studentId_2 and course_offering_id=:offeringId_2) as enrolled '
+              .'(select count(id) from enrollments where student_id=:studentId_2 and course_offering_id in ('
+                .'select id from course_offerings where course_id = :courseId'
+              .')) as enrolled '
               .'from dual';
       $r = DB::select(DB::raw($q), array(
         'offeringId'=> $offeringId,
         'studentId' => $studentId,
         'studentId_2' => $studentId,
-        'offeringId_2' => $offeringId
+        'courseId' => $o['course_id']
       ));
 
       if (!$r[0]->offering_exists) {
@@ -256,11 +264,19 @@ class RegistrarController extends Controller
         'studentId' => 'required|numeric|min:1'
       ]);
       $studentId = $request->input('studentId');
-      Enrollment::where([
+      $enr = Enrollment::where([
           ['student_id', $studentId],
           ['course_offering_id', $offeringId]
+        ])->first();
+      if ($enr['grade']) {
+        Session::flash('error', 'Student has been graded for this course offering and cannot be withdrawn');
+      } else {
+        $d = Enrollment::where([
+             ['student_id', $studentId],
+             ['course_offering_id', $offeringId]
         ])->delete();
-      Session::flash('success', 'Student withdrawn from course offering');
+        Session::flash('success', 'Student withdrawn from course offering');
+      }
       return $this->showOffering($request);
     }
 
