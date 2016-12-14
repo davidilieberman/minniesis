@@ -59,16 +59,16 @@ Route::post('/registrar/enroll/{offeringId}', 'RegistrarController@enrollStudent
   ->middleware('authz:RGR');
 
 Route::delete('/registrar/enroll/{offeringId}', 'RegistrarController@unenrollStudent')
-  ->name('enrollemnts.destoy')
+  ->name('registrar.enrollments.destoy')
   ->middleware('authz:RGR');
 
 Route::get('/registrar/students', 'RegistrarController@studentsIndex')
-  ->name('students.index')
+  ->name('registrar.students.index')
   ->middleware('authz:RGR');
 
 Route::get('/registrar/students/{studentUserId}', 'RegistrarController@showStudent')
-  ->name('students.show')
-  ->middleware('authz:RGR');  
+  ->name('registrar.students.show')
+  ->middleware('authz:RGR');
 
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";
@@ -76,7 +76,8 @@ Route::get('/faculty', function() {
 })->middleware('authz:FAC');;
 
 Route::get('/student', function() {
-  echo "Student page <br/>";
+  //echo "Student page <br/>";
+  return view('student.home');
 })->middleware('authz:STU');
 
 

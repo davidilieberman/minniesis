@@ -28,14 +28,14 @@ class RegistrarController extends Controller
 
     function showStudent(Request $request) {
       $studentUserId = $request->route('studentUserId');
-      $u = User::find($studentUserId);
+      $u = SISQueries::getStudentWithGPA($studentUserId);
       if (!$u) {
         Session:flash('error', 'No such student!');
         return $this->studentsIndex();
       }
       $enrollments = SISQueries::getStudentEnrollments($studentUserId);
       return view('registrar.student')
-        ->with('student', $u)
+        ->with('student', $u[0])
         ->with('enrollments',$enrollments);
     }
 

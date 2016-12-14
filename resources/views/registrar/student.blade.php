@@ -16,6 +16,14 @@
 
 @section('pagedata')
 
+@if ($student->gpa)
+  <table class="table" style="border-bottom:1px solid #dadada;">
+    <tr>
+      <td>GPA: {{ number_format($student->gpa, 2) }}</td>
+    </tr>
+  </table>
+@endif
+
 <table class="table table-striped">
   <tr>
     <td colspan="5">
@@ -51,7 +59,7 @@
         <td>{{ $enrl->grade }}</td>
       </tr>
     @endforeach
-    
+
   @endif
 
 </table>
