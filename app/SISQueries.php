@@ -34,6 +34,30 @@ class SISQueries  {
             left join courses c on o.course_id = c.id ";
   }
 
+  private static function offeringQueryBase() {
+    return "SELECT
+            o.id,
+            o.course_id,
+            o.instance_number,
+            o.faculty_member_id,
+            c.course_name,
+            c.course_code,
+            d.dept_code,
+            d.id as department_id,
+            count(distinct e.id) as enrl_cnt
+        FROM
+            course_offerings o,
+            courses c,
+            departments d,
+            enrollments e,
+            students s
+        WHERE
+            d.id = c.department_id
+        AND c.id = o.course_id
+        AND o.active=true
+        AND e.course_offering_id = o.id ";
+  }
+
   public static function getStudentEnrollmentCredits($studentId) {
     $q = "SELECT ifnull(sum(c.credits),0) as total
             FROM courses c, course_offerings o, enrollments e
@@ -61,7 +85,16 @@ class SISQueries  {
   }
 
   public static function getOfferingEnrollments($offeringId) {
-    $q = "SELECT u.name, s.id as student_id, s.year, u.email, u.id, g.grade
+    $q = "SELECT
+            u.name,
+            s.id as student_id,
+            e.id as enrollment_id,
+            s.year,
+            u.email,
+            u.id,
+            g.grade,
+            g.id as grade_id,
+            s.department_id
           from users u join students s on s.id = u.id
           join enrollments e on e.student_id = s.id
           left join grades g on e.grade_id = g.id
@@ -168,7 +201,6 @@ class SISQueries  {
       return $arr;
   }
 
-
   public static function getDeptFaculty($deptId) {
     $q = "SELECT f.id, u.name, u.email, f.chair, count(o.id) as assgn_ct
           from faculty_members f
@@ -180,6 +212,20 @@ class SISQueries  {
           order by chair desc, u.name";
     $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
     return $faculty;
+  }
+
+  public static function getFacultyTeachingAssignments($facId) {
+      $q = SISQueries::offeringQueryBase()
+          ."AND o.faculty_member_id = :facId
+          group by o.id
+          order by c.course_code, o.instance_number";
+      return DB::select(DB::raw($q), array('facId' => $facId));
+  }
+
+  public static function getOffering($offeringId) {
+      $q = SISQueries::offeringQueryBase()
+      ." AND o.id = :offeringId group by o.id";
+      return DB::select(DB::raw($q), array('offeringId' => $offeringId));
   }
 
   public static function countAssignmentsForOfferingInstructor($offeringId) {
@@ -198,7 +244,5 @@ class SISQueries  {
          and active=true";
     return DB::select(DB::raw($q), array('facId' => $facId));
   }
-
-
 
 }

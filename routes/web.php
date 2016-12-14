@@ -70,10 +70,18 @@ Route::get('/registrar/students/{studentUserId}', 'RegistrarController@showStude
   ->name('registrar.students.show')
   ->middleware('authz:RGR');
 
-Route::get('/faculty', function() {
-  echo "Faculty page <br/>";
-  dump(Auth::user()->toArray());
-})->middleware('authz:FAC');
+Route::get('/faculty', 'FacultyController@index')
+  ->name('faculty.index')
+  ->middleware('authz:FAC');
+
+Route::get('/faculty/offering/{offeringId}', 'FacultyController@showOffering')
+  ->name('faculty.offering.show')
+  ->middleware('authz:FAC');
+
+Route::put('/faculty/offering/{offeringId}/enrollment/',
+      'FacultyController@updateEnrollmentGrade')
+  ->name('faculty.enrollment.update')
+  ->middleware('authz:FAC');
 
 Route::get('/student', 'StudentController@index')
   ->name('student.index')
@@ -81,7 +89,7 @@ Route::get('/student', 'StudentController@index')
 
 Route::put('/student/update', 'StudentController@changeMajor')
   ->name('student.update')
-  ->middleware('authz:STU');  
+  ->middleware('authz:STU');
 
 
 Route::get('/logout', function() {
