@@ -73,12 +73,15 @@ Route::get('/registrar/students/{studentUserId}', 'RegistrarController@showStude
 Route::get('/faculty', function() {
   echo "Faculty page <br/>";
   dump(Auth::user()->toArray());
-})->middleware('authz:FAC');;
+})->middleware('authz:FAC');
 
-Route::get('/student', function() {
-  //echo "Student page <br/>";
-  return view('student.home');
-})->middleware('authz:STU');
+Route::get('/student', 'StudentController@index')
+  ->name('student.index')
+  ->middleware('authz:STU');
+
+Route::put('/student/update', 'StudentController@changeMajor')
+  ->name('student.update')
+  ->middleware('authz:STU');  
 
 
 Route::get('/logout', function() {

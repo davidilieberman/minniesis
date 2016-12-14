@@ -13,4 +13,8 @@ class Student extends Model
   public function enrollments() {
     return $this->hasMany('App\Enrollment');
   }
+
+  public function department() {
+    return $this->belongsTo('App\Department');
+  }
 }

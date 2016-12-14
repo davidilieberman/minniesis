@@ -22,10 +22,12 @@ class SISQueries  {
   }
 
   private static function studentQueryBase() {
-    return "SELECT u.id, u.email, u.name,
+    return "SELECT u.id, u.email, u.name, d.id as department_id,
+              d.dept_desc, d.dept_code,
             (sum(g.score * c.credits) / sum(c.credits)) gpa
             from users u
             join students s on u.id = s.id
+            join departments d on d.id = s.department_id
             left join enrollments e on e.student_id = s.id
             left join grades g on e.grade_id = g.id
             left join course_offerings o on e.course_offering_id = o.id

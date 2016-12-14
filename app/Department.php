@@ -17,4 +17,8 @@ class Department extends Model
     public function course_offerings() {
       return $this->hasManyThrough('App\Course', 'App\CourseOffering');
     }
+
+    public function students() {
+      return $this->hasMany('App\Student');
+    }
 }
