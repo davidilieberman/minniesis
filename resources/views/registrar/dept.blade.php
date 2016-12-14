@@ -7,7 +7,8 @@
 @endsection
 
 @section('summary')
-  Some text here.
+  This page lists the department's courses, its faculty and its student majors.
+  Select a course to manage its offerings and enroll students.
 @endsection
 
 @section('pagedata')

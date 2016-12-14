@@ -10,7 +10,10 @@
 @endsection
 
 @section('summary')
-  Summary section
+  Use this page to enroll students in this course offering. Note that
+  the course offering may only accept the maximum number students defined
+  for the course. An enrollment request will be rejected if it would cause
+  the student to exceed a total of nine credits in enrolled courses.
 @endsection
 
 @section('pagedata')
@@ -21,9 +24,10 @@
 
 <div class="panel-heading">
 @if ( count($enrollments) < $course->capacity)
-   <form action="/registrar/enroll/{{$offering->id}}" method="GET">
-      Enroll Students: Search <input type="text" name="name"/>
-    <input type="submit" value="Submit"/>
+   <form action="/registrar/enroll/{{$offering->id}}" method="GET"
+        class="form-inline">
+      Enroll Students: Search <input type="text" name="name" class="form-control"/>
+    <input type="submit" value="Submit" class="form-control"/>
   </form>
 @else
     Course Offering is full (maximum capacity: {{ $course->capacity }})
@@ -35,12 +39,13 @@
   @if (count($search_results) > 0)
     <table class="table table-striped">
   @foreach($search_results as $st)
-    <form action="/registrar/enroll/{{ $offering->id }}" method="post">
+    <form action="/registrar/enroll/{{ $offering->id }}" method="post"
+        class="form-inline">
       {{ csrf_field() }}
       <input type="hidden" name="studentId" value="{{ $st->student_id }}"/>
       <tr>
         <td>
-          <input type="submit" value="Enroll"/>
+          <input type="submit" value="Enroll" class="form-control"/>
         </td>
         <td>
           {{$st->name}}
@@ -72,7 +77,8 @@
     <th>&nbsp;</th>
   </tr>
   @foreach ($enrollments as $student)
-    <form action="/registrar/enroll/{{$offering->id}}" method="POST">
+    <form action="/registrar/enroll/{{$offering->id}}" method="POST"
+        class="form-inline">
       {{ csrf_field() }}
       <input type="hidden" name="_method" value="DELETE"/>
       <input type="hidden" name="studentId" value="{{ $student->student_id }}"/>
@@ -84,7 +90,7 @@
         <td>{{ $student->grade }}</td>
         <td>
           @if ( !$student->grade )
-            <input type="submit" value="Withdraw"/>
+            <input type="submit" value="Withdraw" class="form-control"/>
           @endif
         </td>
       </tr>

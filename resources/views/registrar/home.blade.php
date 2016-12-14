@@ -8,7 +8,12 @@
 
 @section('summary')
 
-  Some text here.
+  Greetings, {{ Auth::user()->name}}! This application will allow you
+  to manage Nowhere University course offerings and enrollments. Use
+  the Departments module to identify courses, manage their offerings
+  and enroll students in offerings. For your convenience, you can
+  use the Students module to review information about individual students.
+  Use the "breadcrumb" interface, above, to navigate the modules.
 
 @endsection
 

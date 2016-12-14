@@ -12,7 +12,9 @@
 
 @section('summary')
 
-  Some text here.
+  Greetings, {{ $student->name}}! You can use this page to review your
+  course enrollments, check your grades and GPA, and change your major
+  if you choose.
 
 @endsection
 

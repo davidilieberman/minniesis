@@ -9,7 +9,10 @@
 
 @section('summary')
 
-  Some text here.
+  This page provides a summary view of all students matriculated at
+  Nowhere University, including the Grade Point Average of any student
+  who has completed one or more courses at NWU. Click on a student's name
+  for more detailed information about his or her academic experience.
 
 @endsection
 

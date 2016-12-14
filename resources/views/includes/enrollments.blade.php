@@ -25,7 +25,11 @@
 
 
     @foreach ($enrollments as $enrl)
-      <tr>
+     @if ($enrl->dept_id == $student->department_id)
+        <tr style="font-weight:bold;">
+     @else
+        <tr>
+     @endif
         <td>{{ $enrl->dept_code }} {{ $enrl->course_code}}</td>
         <td>{{ $enrl->course_name}}</td>
         <td>{{ $enrl->instructor }}</td>

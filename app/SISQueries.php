@@ -46,6 +46,7 @@ class SISQueries  {
 
   public static function getStudentEnrollments($studentUserId) {
     $q = "SELECT d.dept_code, c.course_code, c.course_name,
+              d.id as dept_id,
               c.credits, g.grade, f.name as instructor
             from users u join students s on s.id = u.id
             join enrollments e on e.student_id = s.id

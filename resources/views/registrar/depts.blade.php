@@ -9,7 +9,8 @@
 
 @section('summary')
 
-  Some text here.
+  Choose a department to manage its course offerings and enroll students in
+  courses.
 
 @endsection
 

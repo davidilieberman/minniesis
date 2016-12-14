@@ -11,7 +11,7 @@
               </div>
 
               <div class="panel-heading">
-                <p style="font-size:0.8em;">
+                <p style="font-size:0.92em; color:#880044;">
                   @yield('summary')
                 </p>
               </div>
@@ -31,7 +31,7 @@
               @endif
 
                 @yield('pagedata')
-                
+
             </div>
         </div>
     </div>
