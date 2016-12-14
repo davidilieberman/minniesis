@@ -88,14 +88,17 @@ class CourseSeeder extends Seeder
 
         $courses = [
           ['BIO', '101', 'stewie'],
-          ['CHM', '101', 'babs']
+          ['CHM', '101', 'babs'],
+          ['ENG', '318', 'dolores']
         ];
 
         $students = array(
-          'rentwhistle' => ['A', 'A-'],
-          'upinelli' => ['B+', 'B'],
-          'mwagner' => ['B','B'],
-          'kmiller' => ['B-', 'C']);
+          'rentwhistle@nwr.edu' => ['A', 'A-', 'B'],
+          'upinelli@nwr.edu' => ['B+', 'B', 'A-'],
+          'mwagner@nwr.edu' => ['B','B','B-'],
+          'kmiller@nwr.edu' => ['B-', 'C','B-'],
+          'jill@harvard.edu' => ['A','A','A']
+        );
 
         $ind = 0;
         foreach ($courses as $course) {
@@ -120,7 +123,7 @@ class CourseSeeder extends Seeder
 
 
           foreach ($students as $s => $g) {
-            $su = User::where('email', $s.'@nwr.edu')->first();
+            $su = User::where('email', $s)->first();
             $grade = Grade::where('grade', $g[$ind])->first();
             $student = Student::where('user_id', $su->id)->first();
             Enrollment::create([
