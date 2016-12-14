@@ -2,7 +2,8 @@
 
 @section('breadcrumb')
 
-  Registrar: Departments
+    <a href="/registrar">Registrar</a> ::
+    Departments
 
 @endsection
 

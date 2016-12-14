@@ -21,9 +21,9 @@ class GradesTableSeeder extends Seeder
             'B-'  => 2.7,
             'C+'  => 2.3,
             'C'   => 2.0,
-            'C-'  =>1.7,
+            'C-'  => 1.7,
             'D'   => 1.0,
-            'F'   => 0.0
+            'F'   => 0.5
         );
 
         foreach($data as $grade => $score) {

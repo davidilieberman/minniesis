@@ -16,9 +16,29 @@ use App\FacultyMember;
 use App\User;
 
 use Illuminate\Support\Facades\DB;
+use App\SISQueries;
 
 class RegistrarController extends Controller
 {
+
+    function studentsIndex() {
+      return view('registrar.students')
+        ->with('students', $this->getGPAs());
+    }
+
+    function showStudent(Request $request) {
+      $studentUserId = $request->route('studentUserId');
+      $u = User::find($studentUserId);
+      if (!$u) {
+        Session:flash('error', 'No such student!');
+        return $this->studentsIndex();
+      }
+      $enrollments = SISQueries::getStudentEnrollments($studentUserId);
+      return view('registrar.student')
+        ->with('student', $u)
+        ->with('enrollments',$enrollments);
+    }
+
     function deptsIndex() {
       return view('registrar.depts')
         ->with('depts', $this->getDepartments());
@@ -420,6 +440,17 @@ class RegistrarController extends Controller
             .'order by u.name';
       $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
       return $faculty;
+    }
+
+    private function getGPAs() {
+      $q = "SELECT u.id, u.email, u.name, count(e.id) enrollments, SUM(g.score * c.credits) / SUM(c.credits) gpa "
+          .'FROM users u JOIN students s ON s.user_id = u.id '
+          .'LEFT JOIN enrollments e ON e.student_id = s.id '
+          .'LEFT JOIN grades g ON g.id = e.grade_id '
+          .'LEFT JOIN course_offerings o ON o.id = e.course_offering_id '
+          .'LEFT JOIN courses c ON c.id = o.course_id '
+          .'GROUP BY u.id, u.name ORDER BY u.name ';
+      return DB::select(DB::raw($q));
     }
 
     private function check($result, $key, $message, $obj) {

@@ -1,7 +1,8 @@
 @extends('layouts.sis')
 
 @section('breadcrumb')
-Registrar: <a href="/registrar/depts">Departments</a> ::
+  <a href="/registrar">Registrar</a> ::
+  <a href="/registrar/depts">Departments</a> ::
   {{ $dept->dept_desc }}
 @endsection
 

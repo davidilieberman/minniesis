@@ -1,9 +1,9 @@
 @extends('layouts.sis')
 
 @section('breadcrumb')
-Registrar: <a href="/registrar/depts">Departments</a> ::
-  <a href="/registrar/depts/{{ $dept->id }}"
-    >{{ $dept->dept_desc }}</a> ::
+  <a href="/registrar">Registrar</a> ::
+  <a href="/registrar/depts">Departments</a> ::
+  <a href="/registrar/depts/{{ $dept->id }}">{{ $dept->dept_desc }}</a> ::
   <a href="/registrar/courses/{{ $dept->id }}/{{ $course->id }}"
     >{{ $course->course_name }} ({{ $dept->dept_code }} {{ $course->course_code }})</a> ::
   Offering {{ $offering->instance_number }}
