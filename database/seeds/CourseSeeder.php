@@ -122,14 +122,14 @@ class CourseSeeder extends Seeder
           foreach ($students as $s => $g) {
             $su = User::where('email', $s.'@nwr.edu')->first();
             $grade = Grade::where('grade', $g[$ind])->first();
-            $student = Student::where('user_id', $su->id)->first();
+            //$student = Student::find($su);
             Enrollment::create([
-              'student_id' => $student->id,
+              'student_id' => $su->id,
               'grade_id' => $grade->id,
               'course_offering_id' => $co->id
             ]);
           }
-          $ind ++;
+          $ind++;
         }
     }
 }
