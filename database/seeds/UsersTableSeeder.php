@@ -38,7 +38,10 @@ class UsersTableSeeder extends Seeder
           ['cammie', 'Cammie Lynne'],
           ['babs', 'Babette Collier'],
           ['aporter', 'Angela Porter'],
-          ['gwaterhouse', 'Georgina Waterhouse']
+          ['gwaterhouse', 'Georgina Waterhouse'],
+          ['mmazur', 'Marie Mazur'],
+          ['goakfoot', 'George Oakfoot'],
+          ['kguld', 'Kai Guld']
         ];
 
         $students = [
@@ -56,7 +59,7 @@ class UsersTableSeeder extends Seeder
           ['mtripplehorn', 'Malcolm Tripplehorne'],
           ['ibayles', 'Ingrid Bayled'],
           ['mberman', 'Micah Berman'],
-          ['ctayler', 'Charles Taylor'],
+          ['ctaylor', 'Charles Taylor'],
           ['bcox', 'Bob Cox'],
           ['fkeyes', 'Florence Keyes'],
           ['hnorth', 'Hank North'],

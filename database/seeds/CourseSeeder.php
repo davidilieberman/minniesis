@@ -103,7 +103,6 @@ class CourseSeeder extends Seeder
         $ind = 0;
         foreach ($courses as $course) {
           $u = User::where('email', $course[2].'@fac.nwr.edu')->first();
-          $f = FacultyMember::where('user_id', $u->id)->first();
           $d = Department::where('dept_code', $course[0])->first();
           $c = Course::where([
             ['department_id', $d->id],
@@ -113,7 +112,7 @@ class CourseSeeder extends Seeder
           CourseOffering::create([
             'instance_number' => 1,
             'course_id' => $c->id,
-            'faculty_member_id' => $f->id
+            'faculty_member_id' => $u->id
           ]);
 
           $co = CourseOffering::where([
@@ -125,7 +124,6 @@ class CourseSeeder extends Seeder
           foreach ($students as $s => $g) {
             $su = User::where('email', $s)->first();
             $grade = Grade::where('grade', $g[$ind])->first();
-            //$student = Student::find($su);
             Enrollment::create([
               'student_id' => $su->id,
               'grade_id' => $grade->id,

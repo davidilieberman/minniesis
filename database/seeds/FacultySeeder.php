@@ -48,6 +48,11 @@ class FacultySeeder extends Seeder
             ['benito', true],
             ['abullock', false],
             ['alank', false],
+          ],
+          'GER' => [
+            ['mmazur', true],
+            ['goakfoot', false],
+            ['kguld', false]
           ]
         ];
 
@@ -60,7 +65,8 @@ class FacultySeeder extends Seeder
               if ($userId)
               {
                 $fac = new FacultyMember();
-                $fac->user_id = $userId;
+                //$fac->user_id = $userId;
+                $fac->id = $userId;
                 $fac->chair = $uname[1];
                 $dept->faculty_members()->save($fac);
               }

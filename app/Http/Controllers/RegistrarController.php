@@ -23,7 +23,7 @@ class RegistrarController extends Controller
 
     function studentsIndex() {
       return view('registrar.students')
-        ->with('students', $this->getGPAs());
+        ->with('students', SISQueries::getGPAs());
     }
 
     function showStudent(Request $request) {
@@ -41,7 +41,7 @@ class RegistrarController extends Controller
 
     function deptsIndex() {
       return view('registrar.depts')
-        ->with('depts', $this->getDepartments());
+        ->with('depts', SISQueries::getDepartments());
     }
 
     function showDept(Request $request) {
@@ -80,11 +80,11 @@ class RegistrarController extends Controller
       // Climb the tree to load the offering's components
       $c = Course::find($o->course_id);
       $f = FacultyMember::find($o->faculty_member_id);
-      $fp = User::find($f->user_id);
+      $fp = User::find($f->id);
       $f['person'] = $fp;
       $d = Department::find($c->department_id);
 
-      $e = $this->getOfferingEnrollments($offeringId);
+      $e = SISQueries::getOfferingEnrollments($offeringId);
 
       // If there are student search results, push them into the view
       $sr = false;
@@ -128,11 +128,7 @@ class RegistrarController extends Controller
       if (!$o->active) {
         // Verify that activating this offering won't put the
         // faculty member over the assignment limit
-        $q = 'select count(o.id) as assign_ct from course_offerings o '
-              .'where o.active = true '
-              .'and o.faculty_member_id = '
-              .'(select faculty_member_id from course_offerings where id = :courseOfferingId)';
-        $r = DB::select(DB::raw($q), array('courseOfferingId'=>$offeringId));
+        $r = SISQueries::countAssignmentsForOfferingInstructor($offeringId);
         if ($r[0]->assign_ct > 2) {
           Session::flash('error', 'Reactiving this offering would cause the faculty member '
             .'to exceed the limit for teaching assignments');
@@ -163,19 +159,8 @@ class RegistrarController extends Controller
         Session::flash('error', 'Please supply a name to search!');
         return $this->showOffering($request);
       }
-      // Exclude students enrolled in any other offering of the same course
-      $q = 'select s.id as student_id, s.year, u.name, u.email '
-            .'from students s, users u where s.user_id = u.id '
-            .'and lower(u.name) like :name '
-            .'and s.id not in '
-                .'(select student_id from enrollments where course_offering_id in '
-                  .'(select id from course_offerings where course_id = :courseId)'
-                .') '
-            .'order by u.name';
-      $r = DB::select(DB::raw($q), array(
-        'name' => '%'.strtolower($name).'%',
-        'courseId' => $o['course_id']
-      ));
+      // Search excludex students enrolled in any other offering of the same course
+      $r = SISQueries::searchByStudentNameForEnrollment($name, $o);
       Session::flash('student_search_results', $r);
       Session::flash('search_term', $name);
       return $this->showOffering($request);
@@ -192,20 +177,9 @@ class RegistrarController extends Controller
 
       $studentId = $request->input('studentId');
 
-      // Verify that the offering exists and that the student exists and isn't already enrolled in the course
-      $q = 'select '
-              .'(select count(id) from course_offerings where id=:offeringId) as offering_exists, '
-              .'(select count(id) from students where id=:studentId) as student_exists, '
-              .'(select count(id) from enrollments where student_id=:studentId_2 and course_offering_id in ('
-                .'select id from course_offerings where course_id = :courseId'
-              .')) as enrolled '
-              .'from dual';
-      $r = DB::select(DB::raw($q), array(
-        'offeringId'=> $offeringId,
-        'studentId' => $studentId,
-        'studentId_2' => $studentId,
-        'courseId' => $o['course_id']
-      ));
+      // Verify that the offering exists and that the student exists and isn't
+      // already enrolled in the course
+      $r = SISQueries::validateEnrollmentRequest($o, $studentId);
 
       if (!$r[0]->offering_exists) {
         Session::flash('error', 'Received request to enroll a student in a non-existing course offering!');
@@ -224,7 +198,7 @@ class RegistrarController extends Controller
 
       // Verify that enrollment would not push student beyond
       // enrollment limit of 9 credits
-      $credits = $this->getEnrollmentCredits($studentId);
+      $credits = SISQueries::getStudentEnrollmentCredits($studentId);
       $courseCredit = Course::where('id',$o['course_id'])->pluck('credits')->first();
       if ($credits + $courseCredit > MAX_CREDITS) {
         Session::flash('error', 'Enrollment would place student over the maximum allowable credit limit.');
@@ -288,8 +262,12 @@ class RegistrarController extends Controller
         array_push($c, $course);
       }
 
+      //$students = SISQueries::getDeptStudents($deptId);
+      //dump($students);
+
       return view('registrar.dept')
-        ->with('faculty', $this->getDeptFaculty($deptId))
+        ->with('faculty', SISQueries::getDeptFaculty($deptId))
+        ->with('students', SISQueries::getDeptStudents($deptId))
         ->with('dept', $department)
         ->with('courses', $c);
     }
@@ -310,7 +288,7 @@ class RegistrarController extends Controller
       $course = $v['course'];
       $course->load('course_offerings');
 
-      $faculty = $this->getDeptFaculty($deptId);
+      $faculty = SISQueries::getDeptFaculty($deptId);
 
       $fNames = array();
       $available = 0;
@@ -319,18 +297,13 @@ class RegistrarController extends Controller
         if ($f->assgn_ct < 3) $available += 1;
       }
 
-      $q = 'select o.id, count(e.id) as enrl_ct '
-            .'from course_offerings o '
-            .'left join enrollments e on e.course_offering_id = o.id '
-            .'where o.course_id=:courseId '
-            .'group by o.id';
-      $enrollments = DB::select(DB::raw($q), array('courseId' => $courseId));
+      $enrollments = SISQueries::getCourseEnrollmentsCount($courseId);
       $enroll_counts = array();
       foreach ($enrollments as $e) {
         $enroll_counts[$e->id] = $e->enrl_ct;
       }
 
-      $go = $this->getGradedEnrollmentCounts($courseId);
+      $go = SISQueries::getGradedEnrollmentCounts($courseId);
       return view('registrar.course')
         ->with('available', $available)
         ->with('dept', $department)
@@ -356,22 +329,16 @@ class RegistrarController extends Controller
 
       // Verify that this assignment won't exceed faculty assignment capacity
       // A faculty may not have more than three teaching assignments
-      $q = 'select count(*) as assign_ct from course_offerings '
-           .'where faculty_member_id=:facId '
-           .'and active=true';
-      $r = DB::select(DB::raw($q), array('facId' => $facId));
+      $assignments = SISQueries::countFacultyAssignments($facId);
       $f = $validation['facultyMember'];
-      if ($r[0]->assign_ct > 2) {
+      if ($assignments[0]->assign_ct > 2) {
         Session::flash('error', 'Faculty member '.$f->name
           .' has exceeded the limit for teaching assignments');
         return $this->coursePage($deptId, $courseId);
       }
 
       // Get the instance number for the new offering;
-      $q = 'select (ifnull(max(instance_number),0) + 1) '
-          .'as num from course_offerings where course_id=:courseId';
-      $r = DB::select(DB::raw($q), array('courseId' => $courseId));
-      $instanceNum = $r[0]->num;
+      $instanceNum = SISQueries::getCourseOfferingInstanceNumber($courseId);
 
       $o = new CourseOffering();
       $o->course_id = $courseId;
@@ -383,75 +350,6 @@ class RegistrarController extends Controller
     }
 
 
-    private function getOfferingEnrollments($offeringId) {
-      $q = 'select u.name, s.id as student_id, s.year, u.email, u.id, g.grade '
-          .'from users u join students s on s.user_id = u.id '
-          .'join enrollments e on e.student_id = s.id '
-          .'left join grades g on e.grade_id = g.id '
-          .'where e.course_offering_id = :offeringId '
-          .'order by u.name';
-      $e = DB::select(DB::raw($q), array(
-        'offeringId'=>$offeringId
-      ));
-      return $e;
-    }
-
-    private function getGradedEnrollmentCounts($courseId) {
-        $q = 'SELECT o.id as course_offering_id, COUNT(e.id) as graded '
-        .'FROM course_offerings o LEFT JOIN enrollments e '
-        .'ON e.course_offering_id = o.id AND e.grade_id IS NOT NULL '
-        .'WHERE o.course_id = :courseId GROUP BY o.id';
-        $r = DB::select(DB::raw($q), array('courseId' => $courseId));
-        $arr = array();
-        foreach ($r as $result) {
-          $arr[$result->course_offering_id] = $result->graded;
-        }
-        return $arr;
-    }
-
-    private function getEnrollmentCredits($studentId) {
-      $q = 'SELECT ifnull(sum(c.credits),0) as total FROM courses c, course_offerings o, enrollments e '
-        .'WHERE c.id = o.course_id AND o.id = e.course_offering_id AND e.student_id = :studentId';
-      $r = DB::select(DB::raw($q), array('studentId' => $studentId));
-      return $r[0]->total;
-    }
-
-    private function getDepartments() {
-      $q = 'SELECT d.id, d.dept_code, d.dept_desc, '
-            . 'count(c.id) as course_count, '
-            . 'count(co.id) as offering_count '
-            . 'FROM departments d '
-            . 'join courses c on c.department_id = d.id '
-            . 'left join course_offerings co on co.course_id = c.id '
-            . 'group by d.id, d.dept_code, d.dept_desc '
-            . 'order by d.dept_desc';
-
-      return DB::select(DB::raw($q));
-    }
-
-    private function getDeptFaculty($deptId) {
-      $q = 'select f.id, u.name, u.email, count(o.id) as assgn_ct '
-            .'from faculty_members f '
-            .'join users u on f.user_id = u.id '
-            .'left join course_offerings o on o.faculty_member_id = f.id '
-            .'and o.active = true '
-            .'where f.department_id = :deptId '
-            .'group by f.id, u.name '
-            .'order by u.name';
-      $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
-      return $faculty;
-    }
-
-    private function getGPAs() {
-      $q = "SELECT u.id, u.email, u.name, count(e.id) enrollments, SUM(g.score * c.credits) / SUM(c.credits) gpa "
-          .'FROM users u JOIN students s ON s.user_id = u.id '
-          .'LEFT JOIN enrollments e ON e.student_id = s.id '
-          .'LEFT JOIN grades g ON g.id = e.grade_id '
-          .'LEFT JOIN course_offerings o ON o.id = e.course_offering_id '
-          .'LEFT JOIN courses c ON c.id = o.course_id '
-          .'GROUP BY u.id, u.name ORDER BY u.name ';
-      return DB::select(DB::raw($q));
-    }
 
     private function check($result, $key, $message, $obj) {
       if (!$obj) {
@@ -511,7 +409,7 @@ class RegistrarController extends Controller
         }
         $fac = FacultyMember::where('faculty_members.id', $params['facId'])
           ->join('users', function($join) {
-            $join->on('faculty_members.user_id','=','users.id');
+            $join->on('faculty_members.id','=','users.id');
           })->first();
         $result = $this->check($result, 'facultyMember', 'No such faculty member!', $fac);
         if (!$result['valid']) {
@@ -573,5 +471,4 @@ class RegistrarController extends Controller
 
       return $result;
     }
-
 }

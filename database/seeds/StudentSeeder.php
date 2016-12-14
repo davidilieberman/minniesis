@@ -43,7 +43,7 @@ class StudentSeeder extends Seeder
         'mtripplehorn',
         'ibayles',
         'mberman',
-        'ctayler',
+        'ctaylor',
         'bcox',
         'fkeyes',
         'hnorth',
@@ -83,5 +83,11 @@ class StudentSeeder extends Seeder
           'department_id' => $d->id
         ]);
       }
+
+      Student::create([
+        'id' => User::where('email','jill@harvard.edu')->pluck('id')->first(),
+        'year' => 3,
+        'department_id'=> Department::where('dept_code', 'CSCI')->pluck('id')->first()
+      ]);
     }
 }

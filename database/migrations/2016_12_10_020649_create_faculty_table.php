@@ -14,14 +14,16 @@ class CreateFacultyTable extends Migration
     public function up()
     {
         Schema::create('faculty_members', function (Blueprint $table) {
-            $table->increments('id');
+            $table->integer('id')->unsigned();
+            $table->primary('id');
+            $table->foreign('id')->references('id')->on('users');
             $table->timestamps();
 
-            $table->integer('user_id')->unsigned()->unique() ;
+            //$table->integer('user_id')->unsigned()->unique() ;
             $table->integer('department_id')->unsigned();
             $table->boolean('chair')->default(false);
 
-            $table->foreign('user_id')->references('id')->on('users');
+            //$table->foreign('user_id')->references('id')->on('users');
             $table->foreign('department_id')->references('id')->on('departments');
         });
     }
