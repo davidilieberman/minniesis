@@ -249,7 +249,7 @@ class SISQueries  {
       $q = SISQueries::offeringQueryBase()
           ."AND o.faculty_member_id = :facId
           group by o.id, o.course_id, o.instance_number, o.faculty_member_id,
-            c.course_name, c.course_code, c.available, d.dept_code, c.id
+            c.course_name, c.course_code, c.available, d.dept_code, d.id
           order by c.course_code, o.instance_number";
       return DB::select(DB::raw($q), array('facId' => $facId));
   }
