@@ -28,10 +28,24 @@ class FacultyController extends Controller
       return view('faculty.home')
         ->with('offerings',
           SISQueries::getFacultyTeachingAssignments($u->id))
-        ->with('facultyMember', $f)
-        ->with('creditOptions', CREDIT_OPTIONS)
-        ->with('courses', Course::where('department_id', $f->department_id)
-          ->orderBy('course_code')->get());
+        ->with('facultyMember', $f);
+    }
+
+    /**
+    * Show the faculty chair page. Access is allowed only to
+    * faculty members holding the chair of their departments.
+    */
+    function chair() {
+        $f = FacultyMember::find(Auth::user()->id);
+        if (!$f->chair) {
+          Session::flash('error', "You are not your department's chair!");
+          return $this->index();
+        }
+        return view('faculty.chair')
+          ->with('creditOptions', CREDIT_OPTIONS)
+          ->with('facultyMember', $f)
+          ->with('courses', Course::where('department_id', $f->department_id)
+              ->orderBy('course_code','asc')->orderBy('available','desc')->get());
     }
 
     /**
@@ -43,7 +57,7 @@ class FacultyController extends Controller
       $c = Course::find($request->input('course_id'));
       if (!$c) {
         Session::flash('error', 'No such course!');
-        return $this->index();
+        return $this->chair();
       }
 
       // capacity is int in range 4-15
@@ -57,7 +71,7 @@ class FacultyController extends Controller
       $f = FacultyMember::find(Auth::user()->id);
       if ($c->department_id != $f->department_id or !$f->chair) {
         Session::flash('error', 'You are not authorized to manage the requested course.');
-        return $this->index();
+        return $this->chair();
       }
 
       // faculty is chair of course's department
@@ -65,36 +79,45 @@ class FacultyController extends Controller
       $c->save();
 
       Session::flash('success', 'Course successfully updated.');
-      return $this->index();
+      return $this->chair();
 
     }
 
+    /**
+    * The faculty department chair may mark a course as canceled. This
+    * prevents the registrar's office from creating new offerings of the
+    * the course.
+    */
     function cancelCourse(Request $request) {
       // Validation:
       // course exists
       $c = Course::find($request->input('courseId'));
       if (!$c) {
         Session::flash('error', 'No such course!');
-        return $this->index();
+        return $this->chair();
       }
 
       // faculty member is department chair
       $f = FacultyMember::find(Auth::user()->id);
       if (!$f or !$f->chair or !$f->department_id == $c->department_id) {
         Session::flash('error', 'You are not authorized to cancel this course.');
-        return $this->index();
+        return $this->chair();
       }
 
       $c->available = false;
       $c->save();
 
       Session::flash('success', 'Course successfully canceled.');
-      return $this->index();
-
-
+      return $this->chair();
 
     }
 
+    /**
+    * The faculty department chair may add new courses to the department. A
+    * course may not duplicate the code or name of a currently available course,
+    * must offer one of the three defined credit configurations, and must
+    * have an enrollment capacity within the defined range.
+    */
     function storeCourse(Request $request) {
       //Validation:
 
@@ -102,14 +125,14 @@ class FacultyController extends Controller
       $f = FacultyMember::find(Auth::user()->id);
       if (!$f->chair) {
         Session::flash('error', 'You are not authorized to create new courses!');
-        return $this->index();
+        return $this->chair();
       }
 
       //credits is one of 1.5, 3.0, 4.0
       $credits = $request->input('credits');
       if (!$credits or !in_array($credits, CREDIT_OPTIONS)) {
         Session::flash('error', 'Received invalid input for course credits.');
-        return $this->index();
+        return $this->chair();
       }
 
       // code is 3 chars and is unique for dept, or is only
@@ -117,7 +140,7 @@ class FacultyController extends Controller
       $code = $request->input('code');
       if (!$code or !preg_match('/^\d{3}$/', $code)) {
         Session::flash('error', 'Course code must be a string of three numbers.');
-        return $this->index();
+        return $this->chair();
       }
 
       //$collisions = Course::where(['course_code', $code], ['available',true])->get();
@@ -126,14 +149,14 @@ class FacultyController extends Controller
         Session::flash('error', 'Course code "'.$code
           .'" is already assigned to an available course; the existing course must '
           .' be canceled before its code can be re-used.');
-        return $this->index();
+        return $this->chair();
       }
 
       // name is not null and is unique for dept available course_offerings
       $name = $request->input('name');
       if (!$name or strlen($name) == 0) {
         Session::flash('error', 'Course name is required');
-        return $this->index();
+        return $this->chair();
       }
 
       //$collisions = Course::where(['course_name', $name], ['available', true])->get();
@@ -142,7 +165,7 @@ class FacultyController extends Controller
         Session::flash('error', 'Course name "'.$name.'" is aleady assigned to '
           .'an available course; the existing course must be canceled before '
           .'its name can be re-used.');
-        return $this->index();
+        return $this->chair();
       }
 
       // capacity is in in range 4-15
@@ -151,7 +174,7 @@ class FacultyController extends Controller
         or $capacity<CAPACITY_MIN or $capacity>CAPACITY_MAX) {
           Session::flash('error', 'Course capacity must be in the range '
             .CAPACITY_MIN. ' - ' .CAPACITY_MAX .'.');
-          return $this->index();
+          return $this->chair();
         }
 
 
@@ -164,7 +187,7 @@ class FacultyController extends Controller
       $d->courses()->save($course);
 
       Session::flash('success', 'Course created!');
-      return $this->index();
+      return $this->chair();
     }
 
     function showOffering(Request $request) {
@@ -190,6 +213,11 @@ class FacultyController extends Controller
         ->with('grades', $grades);
     }
 
+    /**
+    * A faculty member may enter or change the grade of a student enrollment in
+    * a course he or she teaches. The grade must be from the defined list of
+    * of grade options.
+    */
     function updateEnrollmentGrade(Request $request) {
       // Validation: enrollment must exist, and faculty member must be
       // the assigned offering instructor

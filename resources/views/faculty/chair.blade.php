@@ -1,31 +1,21 @@
 @extends('layouts.sis')
 
 @section('breadcrumb')
-  Faculty Module: <a href="/faculty">Home</a>
+  Faculty Module: <a href="/faculty">Home</a> :: Department Course Management
 @endsection
 
 @section('summary')
 
-  Greetings, {{ Auth::user()->name}}!  Select a course you are teaching from the
-  "My Teaching Assignments" grade your students.
-
-  @if ($facultyMember->chair)
-  <br/><br/>
   As chair of your department, you may also use the "Department Course Management"
   panel below to add new courses to your department, change the enrollment
   capacity of existing courses, or cancel currently active courses. Once a
   course is canceled, the Registrar's office will no longer be able to add
   new offerings of it.
-  @endif
 
 @endsection
 
 @section('pagedata')
 
-<div class="panel-header"
-    style="padding:8px; border-top:2px solid #dadada;">
-  <h4>Department Course Management</h4>
-</div>
 <table class="table table-striped"
     style="border-top:1px solid #dadada; font-size:.8em;">
   <tr>
@@ -76,7 +66,9 @@
     </tr>
   </form>
   @foreach ($courses as $c)
-    <tr @if (!$c->available) style="background-color:#ddd;" @endif>
+    <tr @if (!$c->available)
+        style="background-color:#ddd;"
+      @endif>
       <td>{{ $c->id }}</td>
       <td>{{ $c->course_code }}</td>
       <td>{{ $c->course_name }}</td>

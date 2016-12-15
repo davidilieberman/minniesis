@@ -95,6 +95,10 @@ Route::delete('/faculty/course', 'FacultyController@cancelCourse')
   ->name('faculty.course.cancel')
   ->middleware('authz:FAC');
 
+Route::get('/faculty/chair', 'FacultyController@chair')
+  ->name('faculty.chair')
+  ->middleware('authz:FAC');
+
 Route::get('/student', 'StudentController@index')
   ->name('student.index')
   ->middleware('authz:STU');
