@@ -19,7 +19,7 @@ class SISQueries  {
   public static function getStudentWithGPA($studentId) {
     $q = SISQueries::studentQueryBase().
       "where u.id = :studentId
-        group by u.id";
+        group by u.id, u.email, u.name, d.id, d.dept_desc, d.dept_code";
     return DB::select(DB::raw($q), array('studentId' => $studentId));
   }
 
