@@ -239,7 +239,7 @@ class SISQueries  {
           left join course_offerings o on o.faculty_member_id = f.id
           and o.active = true
           where f.department_id = :deptId
-          group by f.id, u.name
+          group by f.id, u.name, u.email, f.chair
           order by chair desc, u.name";
     $faculty = DB::select(DB::raw($q), array('deptId' => $deptId));
     return $faculty;
