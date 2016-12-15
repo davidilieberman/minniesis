@@ -90,7 +90,7 @@ class FacultyController extends Controller
       }
 
       $enrollments = SISQueries::getStudentEnrollments($studentId);
-      return view('registrar.student')
+      return view('faculty.student')
         ->with('student', $s[0])
         ->with('enrollments',$enrollments);
 
