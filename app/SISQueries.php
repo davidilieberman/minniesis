@@ -256,7 +256,9 @@ class SISQueries  {
 
   public static function getOffering($offeringId) {
       $q = SISQueries::offeringQueryBase()
-      ." AND o.id = :offeringId group by o.id";
+      ." AND o.id = :offeringId group by o.id, o.course_id,
+        o.instance_number, o.faculty_member_id,
+        c.course_name, c.course_code, c.available, d.dept_code, d.id";
       return DB::select(DB::raw($q), array('offeringId' => $offeringId));
   }
 
