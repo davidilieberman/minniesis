@@ -4,11 +4,19 @@
 
 ### Project 4:
 
+#### Published URL: http://p4.davidisadorelieberman.com/
+
+#### Video: https://www.youtube.com/watch?v=lK49rdYWN0w (This went a bit long ... )
+
+#### GitHub: https://github.com/davidilieberman/minniesis
+
 ## MiniSIS
 
 This project mimics a subset of the behaviors of the Student Information System deployed at prestigious Nowhere University. NWU is well known for its exceptionally small class sizes and commitment to manageable faculty teaching loads. The in-house SIS enforces these features of academic life at NWU with tools that enable authorized users to create courses, create offerings of those courses, enroll students in offerings, grade enrolled students, and change student majors. These activities are distributed among system actors as follows.
 
 ### Registrar
+
+#### Sample user: jamal@harvard.edu
 
 Holders of the Registrar role have visibility into the entire
 system. They may view the courses and faculty members of
@@ -25,6 +33,8 @@ These capabilities are constrained by the following business rules:
 
 ### Faculty
 
+#### Sample user: stewie@fac.nwr.edu
+
 Holders of the Faculty role have visibility only into those resources personally associated with them. All faculty members have access to a list of the course offerings they are assigned to teach, and may assign grades to students enrolled in those course offerings.
 
 Faculty members designated as the chairs of their departments have additional capabilities. They may add new courses to their departments' course lists, change the enrollment capacity of existing courses, and mark existing courses canceled. Faculty department chairs may also review the academic experience of students majoring in their field of study.
@@ -36,6 +46,8 @@ These capabilities are constrained by the following business rules.
 - A new course must define a capacity within the range set by NWU's commitment to small class sizes: a minimum of four students and a maximum of fifteen.
 
 ### Students
+
+#### Sample user: jill@harvard.edu
 
 Holders of the student role have visibility only into those resources personally associated with them. They may see the own course offering enrollments, enrollment grades and GPAs. Student may additionally choose to change their major to some other field of study on offer at NWU.
 
