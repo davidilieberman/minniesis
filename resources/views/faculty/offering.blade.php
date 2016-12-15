@@ -41,12 +41,13 @@
             <td>{{ $enrl->email }}</td>
             <td>{{ $enrl->grade }}</td>
             <td>
-              <select name="gradeId" class="form-control" style="width:auto;"
+              <select name="gradeId" class="form-control"
+                  style="width:auto; height:auto; font-size:.8em;"
                   onchange="this.form.submit();">
                   <option value="-1">&nbsp;</option>
                 @foreach ($grades as $g)
                   @if ($g->id == $enrl->grade_id)
-                    <option select value="{{ $g->id}}">{{ $g->grade }}</option>
+                    <option selected value="{{ $g->id}}">{{ $g->grade }}</option>
                   @else
                     <option value="{{ $g->id }}">{{ $g->grade }}</option>
                   @endif

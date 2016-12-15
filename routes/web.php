@@ -83,6 +83,14 @@ Route::put('/faculty/offering/{offeringId}/enrollment/',
   ->name('faculty.enrollment.update')
   ->middleware('authz:FAC');
 
+Route::put('/faculty/course', 'FacultyController@updateCourse')
+  ->name('faculty.course.update')
+  ->middleware('authz:FAC');
+
+Route::post('/faculty/course', 'FacultyController@storeCourse')
+  ->name('faculty.course.store')
+  ->middleware('authz:FAC');
+
 Route::get('/student', 'StudentController@index')
   ->name('student.index')
   ->middleware('authz:STU');
