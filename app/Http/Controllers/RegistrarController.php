@@ -248,9 +248,10 @@ class RegistrarController extends Controller
       $department = $validation['dept'];
       $department->load('courses.course_offerings');
       $courses = $department->courses->toArray();
-      // Sort department courses on course code.
+      // Sort department courses on course code and availability flag.
       uasort($courses, function($a, $b) {
-        $a['course_code'] < $b['course_code'] ? -1 : 1;
+        $a['course_code'] < $b['course_code'] ? -1 :
+          ($a['available'] > $b['available'] ? -1 : 1);
       });
 
       $c = array();

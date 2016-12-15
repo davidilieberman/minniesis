@@ -132,5 +132,16 @@ class CourseSeeder extends Seeder
           }
           $ind++;
         }
+
+        // One canceled course
+        $c = new Course();
+        $c->course_code = '101';
+        $c->course_name = 'General Biology I';
+        $c->credits = 3.0;
+        $c->capacity = 8;
+        $c->available = false;
+        $d = Department::where('dept_code', 'BIO')->first();
+        $d->courses()->save($c);
+
     }
 }

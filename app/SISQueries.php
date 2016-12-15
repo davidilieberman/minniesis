@@ -42,6 +42,7 @@ class SISQueries  {
             o.faculty_member_id,
             c.course_name,
             c.course_code,
+            c.available,
             d.dept_code,
             d.id as department_id,
             count(distinct e.id) as enrl_cnt
@@ -168,6 +169,26 @@ class SISQueries  {
           order by d.dept_desc";
 
     return DB::select(DB::raw($q));
+  }
+
+  public static function countCodeMatches($code, $deptId) {
+    $q = "SELECT count(c.id) AS match_count
+          FROM courses c
+          WHERE c.course_code = :code
+          AND c.department_id = :deptId";
+    $r = DB::select(DB::raw($q),
+      array('code'=>(string)$code, 'deptId'=>$deptId));
+    return $r[0]->match_count;
+  }
+
+  public static function countCourseNameMatches($name, $deptId) {
+      $q = "SELECT count(c.id) AS match_count
+            FROM courses c
+            WHERE c.course_name = :name
+            AND c.department_id = :deptId";
+      $r = DB::select(DB::raw($q),
+        array('name'=>$name, 'deptId'=>$deptId));
+      return $r[0]->match_count;
   }
 
   public static function getCourseEnrollmentsCount($courseId) {

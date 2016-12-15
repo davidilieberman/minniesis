@@ -21,6 +21,7 @@ class CreateCourse extends Migration
             $table->string('course_name');
             $table->float('credits')->unsigned();
             $table->integer('capacity')->unsigned();
+            $table->boolean('available')->default(true);
 
             $table->integer('department_id')->unsigned();
             $table->foreign('department_id')->references('id')->on('departments');

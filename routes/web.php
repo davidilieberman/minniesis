@@ -91,6 +91,10 @@ Route::post('/faculty/course', 'FacultyController@storeCourse')
   ->name('faculty.course.store')
   ->middleware('authz:FAC');
 
+Route::delete('/faculty/course', 'FacultyController@cancelCourse')
+  ->name('faculty.course.cancel')
+  ->middleware('authz:FAC');
+
 Route::get('/student', 'StudentController@index')
   ->name('student.index')
   ->middleware('authz:STU');

@@ -8,12 +8,15 @@ use Session;
 
 use App\Course;
 use App\CourseOffering;
+use App\Department;
 use App\Enrollment;
 use App\FacultyMember;
 use App\Grade;
 use App\SISQueries;
 
 define ('CREDIT_OPTIONS', [1.5, 3.0, 4.0]);
+define ('CAPACITY_MIN', 4);
+define ('CAPACITY_MAX', 15);
 
 
 class FacultyController extends Controller
@@ -31,18 +34,15 @@ class FacultyController extends Controller
           ->orderBy('course_code')->get());
     }
 
+    /**
+    * The faculty chair may change a course's enrollment capacity.
+    */
     function updateCourse(Request $request) {
       // Validation:
       // course exists
       $c = Course::find($request->input('course_id'));
       if (!$c) {
         Session::flash('error', 'No such course!');
-        return $this->index();
-      }
-      // credit is one of 1.5, 3.0, 4.0
-      $credits = $request->input('credits');
-      if (!in_array($credits, CREDIT_OPTIONS)) {
-        Session::flash('error', 'Received in invalid number of credits for course.');
         return $this->index();
       }
 
@@ -61,8 +61,6 @@ class FacultyController extends Controller
       }
 
       // faculty is chair of course's department
-
-      $c->credits = $credits;
       $c->capacity = $capacity;
       $c->save();
 
@@ -71,15 +69,102 @@ class FacultyController extends Controller
 
     }
 
+    function cancelCourse(Request $request) {
+      // Validation:
+      // course exists
+      $c = Course::find($request->input('courseId'));
+      if (!$c) {
+        Session::flash('error', 'No such course!');
+        return $this->index();
+      }
+
+      // faculty member is department chair
+      $f = FacultyMember::find(Auth::user()->id);
+      if (!$f or !$f->chair or !$f->department_id == $c->department_id) {
+        Session::flash('error', 'You are not authorized to cancel this course.');
+        return $this->index();
+      }
+
+      $c->available = false;
+      $c->save();
+
+      Session::flash('success', 'Course successfully canceled.');
+      return $this->index();
+
+
+
+    }
+
     function storeCourse(Request $request) {
       //Validation:
+
+      // faculty is dept chair
+      $f = FacultyMember::find(Auth::user()->id);
+      if (!$f->chair) {
+        Session::flash('error', 'You are not authorized to create new courses!');
+        return $this->index();
+      }
+
       //credits is one of 1.5, 3.0, 4.0
+      $credits = $request->input('credits');
+      if (!$credits or !in_array($credits, CREDIT_OPTIONS)) {
+        Session::flash('error', 'Received invalid input for course credits.');
+        return $this->index();
+      }
 
-      // code is unique for dept
+      // code is 3 chars and is unique for dept, or is only
+      // assigned to canceled courses
+      $code = $request->input('code');
+      if (!$code or !preg_match('/^\d{3}$/', $code)) {
+        Session::flash('error', 'Course code must be a string of three numbers.');
+        return $this->index();
+      }
 
-      //capcity is int in range 4-15
+      //$collisions = Course::where(['course_code', $code], ['available',true])->get();
+      $collisions = SISQueries::countCodeMatches($code, $f->department_id);
+      if ($collisions > 0) {
+        Session::flash('error', 'Course code "'.$code
+          .'" is already assigned to an available course; the existing course must '
+          .' be canceled before its code can be re-used.');
+        return $this->index();
+      }
 
-      //faculty is dept chair
+      // name is not null and is unique for dept available course_offerings
+      $name = $request->input('name');
+      if (!$name or strlen($name) == 0) {
+        Session::flash('error', 'Course name is required');
+        return $this->index();
+      }
+
+      //$collisions = Course::where(['course_name', $name], ['available', true])->get();
+      $collisions = SISQueries::countCourseNameMatches($name, $f->department_id);
+      if ($collisions > 0) {
+        Session::flash('error', 'Course name "'.$name.'" is aleady assigned to '
+          .'an available course; the existing course must be canceled before '
+          .'its name can be re-used.');
+        return $this->index();
+      }
+
+      // capacity is in in range 4-15
+      $capacity = $request->input('capacity');
+      if (!is_numeric($capacity)
+        or $capacity<CAPACITY_MIN or $capacity>CAPACITY_MAX) {
+          Session::flash('error', 'Course capacity must be in the range '
+            .CAPACITY_MIN. ' - ' .CAPACITY_MAX .'.');
+          return $this->index();
+        }
+
+
+      $d = Department::find($f->department_id);
+      $course = new Course();
+      $course->course_code = $code;
+      $course->course_name = $name;
+      $course->credits = $credits;
+      $course->capacity = $capacity;
+      $d->courses()->save($course);
+
+      Session::flash('success', 'Course created!');
+      return $this->index();
     }
 
     function showOffering(Request $request) {
