@@ -321,7 +321,6 @@ class RegistrarController extends Controller
     * Support function to render a course with its offerings, summary
     * information about them and offering management options.
     */
-    )
     private function coursePage($deptId, $courseId) {
 
       $v = $this->validation(array(

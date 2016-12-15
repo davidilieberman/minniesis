@@ -2,7 +2,7 @@
 
 @section('breadcrumb')
 
-  Faculty Module: <a href="/faculty">Home</a> ||
+  Faculty Module: <a href="/faculty">Home</a> ::
     {{ $offering->dept_code}} {{ $offering->course_code}}:
     {{ $offering->course_name}} -
     Offering {{ $offering->instance_number }}

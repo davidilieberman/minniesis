@@ -4,6 +4,16 @@ namespace App;
 
 use Illuminate\Support\Facades\DB;
 
+/**
+* Working with Eloquent reminded me of what it is I've always disliked about
+* ORM solutions: the attempt to "simplify" away the complexities of SQL
+* often results in an equally impenetrable, highly idiosyncratic DSL.
+*  More often not not, the hoops required to get the DSL to perform joins
+* or perform aggregation functions when I have solid command of the SQL
+* necessary to perform the task at hand strongly dispose me to go back to
+* the language designed and refined by data engineers over a period of decades
+* as the best tool for the job. So here we are.
+*/
 class SISQueries  {
 
   public static function getStudentWithGPA($studentId) {
@@ -145,7 +155,7 @@ class SISQueries  {
   }
 
   public static function getGPAs() {
-    $q = "SELECT u.id, u.email, u.name, d.dept_desc,
+    $q = "SELECT u.id, u.email, u.name, d.dept_desc, d.id as department_id,
               count(e.id) enrollments,
           SUM(g.score * c.credits) / SUM(c.credits) gpa
           FROM users u JOIN students s ON s.id = u.id

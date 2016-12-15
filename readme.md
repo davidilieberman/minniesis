@@ -1,27 +1,56 @@
-# Laravel PHP Framework
+# David Lieberman, CSCI E5
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/d/total.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+## Fall 2016
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
+### Project 4:
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
+## MiniSIS
 
-## Official Documentation
+This project mimics a subset of the behaviors of the Student Information System deployed at prestigious Nowhere University. NWU is well known for its exceptionally small class sizes and commitment to manageable faculty teaching loads. The in-house SIS enforces these features of academic life at NWU with tools that enable authorized users to create courses, create offerings of those courses, enroll students in offerings, grade enrolled students, and change student majors. These activities are distributed among system actors as follows.
 
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
+### Registrar
 
-## Contributing
+Holders of the Registrar role have visibility into the entire
+system. They may view the courses and faculty members of
+each of NWU's academic departments and are empowered to create offerings of a department's available courses, deactivate and reactivate existing offerings, enroll students in offerings and withdraw them from offerings. Registrar staff may also review a list of all students matriculated at NWU, and review each student's enrollments, grades and GPA.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+These capabilities are constrained by the following business rules:
+- Every offering must have a faculty members assigned to teach it
+- Faculty members may only teach offerings of courses offered by their own departments
+- Observing NWU's commitment to manageable teaching loads, a faculty member may only be assigned to a total of three active course offerings
+- A course offering may only accept as many student enrollments as is defined by its course capacity.
+- A student may not be enrolled in multiple offerings of the same course.
+- A student may carry a maximum of 9 credits in course enrollments.
+- Deactivating a course offering releases its faculty member for another teaching assignment and forcefully removes all of its enrolled students.
 
-## Security Vulnerabilities
+### Faculty
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+Holders of the Faculty role have visibility only into those resources personally associated with them. All faculty members have access to a list of the course offerings they are assigned to teach, and may assign grades to students enrolled in those course offerings.
 
-## License
+Faculty members designated as the chairs of their departments have additional capabilities. They may add new courses to their departments' course lists, change the enrollment capacity of existing courses, and mark existing courses canceled. Faculty department chairs may also review the academic experience of students majoring in their field of study.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+These capabilities are constrained by the following business rules.
+- A course code must in the format of a three digit number.
+- A new course  may not have the same course code or name as an existing, active course.
+- A new course must offer credits in one of the three supported configurations: 1.5 credits, 3.0 credits or 4.0 credits.
+- A new course must define a capacity within the range set by NWU's commitment to small class sizes: a minimum of four students and a maximum of fifteen.
+
+### Students
+
+Holders of the student role have visibility only into those resources personally associated with them. They may see the own course offering enrollments, enrollment grades and GPAs. Student may additionally choose to change their major to some other field of study on offer at NWU.
+
+#### Out of scope
+
+The following concerns are determined to be out of scope for the NWU SIS implementation.
+
+- The system makes no attempt at user provisioning of faculty, staff or students. Those processes are assumed to be 'upstream' of the current business problem.
+- The system makes no attempt to manage scheduling of classroom physical space or to detect scheduling collisions beyond the risk of assigning a student into more than one offering of the same course.
+
+#### Other gaps
+
+These features may be considered for future releases of the NWU SIS.
+
+- Although some departments offer courses clearly designed to be taught in sequence, this version of the SIS has no capability of enforcing prerequisites. It also does not prevent students from being enrolled in more than one course in the same sequence at a time.
+- The enrollment system makes not attempt to prioritize department majors for courses offered by their own departments over other students. Similarly, no attempt is made in this version of the SIS to give enrollment priority to upper classmen.
+- The set of sample student is sufficiently small that it can be reviewed by a Registrar comfortably on a single page. At student body sizes of fifty or more, however, it would be useful to support pagination of the data in the user interface.
+- The implementation of calendar awareness would enable the NWU SIS to produce student transcripts as well as manage the fulfillment of prerequisites to support the offering enrollment process.

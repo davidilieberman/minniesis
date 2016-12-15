@@ -99,6 +99,14 @@ Route::get('/faculty/chair', 'FacultyController@chair')
   ->name('faculty.chair')
   ->middleware('authz:FAC');
 
+Route::get('/faculty/students', 'FacultyController@showMajors')
+  ->name('faculty.students')
+  ->middleware('authz:FAC');
+
+Route::get('/faculty/students/{studentId}', 'FacultyController@showStudent')
+  ->name('faculty.student.show')
+  ->middleware('authz:FAC');
+
 Route::get('/student', 'StudentController@index')
   ->name('student.index')
   ->middleware('authz:STU');

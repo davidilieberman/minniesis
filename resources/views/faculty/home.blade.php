@@ -12,7 +12,9 @@
   @if ($facultyMember->chair)
   <br/><br/>
     As chair, you may also use the "Department Course
-    Management" module to add, modify or cancel courses in your department.
+    Management" module to add, modify or cancel courses in your department, and
+    the "Student Majors" module to review the academic experience of students
+    majoring in your department's field of study.
   @endif
 
 @endsection
@@ -23,14 +25,19 @@
 
 <div class="panel-header"
     style="padding:8px; border-bottom:1px solid #dadada;">
-  <h4><a href="/faculty/chair">Department Course Management (Chair-only)</a></h4>
+  <h5><a href="/faculty/chair">Department Course Management</a></h5>
+</div>
+
+<div class="panel-header"
+    style="padding:8px; border-bottom:1px solid #dadada;">
+  <h5><a href="/faculty/students">Student Majors</a></h5>
 </div>
 
 @endif
 
 <div class="panel-header"
     style="padding:8px; border-bottom:1px solid #dadada;">
-  <h4>My Teaching Assignments</h4>
+  <h5>My Teaching Assignments</h5>
 </div>
 
 @if (count($offerings) > 0)

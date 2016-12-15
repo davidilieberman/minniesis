@@ -54,6 +54,49 @@ class FacultyController extends Controller
     }
 
     /**
+    * The faculty chair may see a summary of information about department
+    * student majors.
+    */
+    function showMajors() {
+      $f = FacultyMember::find(Auth::user()->id);
+      if (!$f->chair) {
+        Session::flash('error', "You are not your department's chair!");
+        return $this->index();
+      }
+      return view('faculty.students')
+        ->with('faculty', $f)
+        ->with('students', SISQueries::getGPAs());
+    }
+
+    /**
+    * The faculty chair may see specifics about a department student major.
+    */
+    function showStudent(Request $request) {
+      $f = FacultyMember::find(Auth::user()->id);
+      if (!$f->chair) {
+        Session::flash('error', "You are not your department's chair!");
+        return $this->index();
+      }
+      $studentId = $request->route('studentId');
+      $s = SISQueries::getStudentWithGPA($studentId);
+      if (!$s[0]) {
+        Session::flash('error', 'No such student!');
+        return $this->showMajors();
+      }
+
+      if (!$s[0]->department_id == $f->department_id) {
+        Session::flash('error', 'Requested student does not belong to your department.');
+        return $this->showMajors();
+      }
+
+      $enrollments = SISQueries::getStudentEnrollments($studentId);
+      return view('registrar.student')
+        ->with('student', $s[0])
+        ->with('enrollments',$enrollments);
+
+    }
+
+    /**
     * The faculty chair may change a course's enrollment capacity.
     */
     function updateCourse(Request $request) {
