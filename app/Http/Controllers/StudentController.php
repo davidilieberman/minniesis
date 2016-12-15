@@ -12,6 +12,11 @@ use App\SISQueries;
 
 class StudentController extends Controller
 {
+    /**
+    * Show the home page appropriate to the student
+    * in session. The student may see her GPA, her enrollments
+    * and any grades entered for them.
+    */
     function index(Request $request) {
       $id = $request->user()->id;
       $u = SISQueries::getStudentWithGPA($id);
@@ -27,6 +32,9 @@ class StudentController extends Controller
         ->with('enrollments',$enrollments);
     }
 
+    /**
+    * A student may change her major.
+    */
     function changeMajor(Request $request) {
       $deptId = $request->input("deptId");
       $d = Department::find($deptId);

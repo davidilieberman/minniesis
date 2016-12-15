@@ -18,14 +18,26 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use App\SISQueries;
 
+/**
+* This controller manages all of the activities a staff member
+* in the Nowhere University Office of the Registrar my perform.
+*/
 class RegistrarController extends Controller
 {
 
+    /**
+    * A registrar may view a list of all students matriculated
+    * into NWU.
+    */
     function studentsIndex() {
       return view('registrar.students')
         ->with('students', SISQueries::getGPAs());
     }
 
+    /**
+    * A registrar may view a student's academic progress as
+    * expressed in course enrollments and grades received.
+    */
     function showStudent(Request $request) {
       $studentUserId = $request->route('studentUserId');
       $u = SISQueries::getStudentWithGPA($studentUserId);
@@ -39,22 +51,34 @@ class RegistrarController extends Controller
         ->with('enrollments',$enrollments);
     }
 
+    /**
+    * A registrar may view a list of NWU academic departments.
+    */
     function deptsIndex() {
       return view('registrar.depts')
         ->with('depts', SISQueries::getDepartments());
     }
 
+    /**
+    * A registrar may view the courses offered by an academic department.
+    */
     function showDept(Request $request) {
       $deptId = $request->route('deptId');
       return $this->deptPage($deptId);
     }
 
+    /**
+    * A registrar may view the offerings of a course.
+    */
     function showCourse(Request $request) {
       $deptId = $request->route('deptId');
       $courseId = $request->route('courseId');
       return $this->coursePage($deptId, $courseId);
     }
 
+    /**
+    * A registrar may create a new offering of an available course.
+    */
     function storeOffering(Request $request) {
       $deptId = $request->input('deptId');
       $courseId = $request->input('courseId');
@@ -63,6 +87,10 @@ class RegistrarController extends Controller
       return $this->saveOffering($deptId, $courseId, $facId);
     }
 
+    /**
+    * A registrar may view an offering of a course and search for students
+    * to enroll in the offering.
+    */
     function showOffering(Request $request) {
 
       $offeringId = $request->route('offeringId');
@@ -105,8 +133,9 @@ class RegistrarController extends Controller
     }
 
     /**
-    * The only we change we support to a defined CourseOffering is to flip its status from active to inactive
-    * or vice-versa.
+    * The only we change we support to a defined CourseOffering is to flip its
+    * status from active to inactive or vice-versa. Operation is blocked if
+    * the department chair has canceled the course.
     */
     function updateOffering(Request $request) {
       $deptId = $request->input('deptId');
@@ -149,6 +178,9 @@ class RegistrarController extends Controller
 
     }
 
+    /**
+    * A registrar may search for students to enroll in a course offering.
+    */
     function searchStudents(Request $request) {
 
       $offeringId = $request->route('offeringId');
@@ -167,6 +199,9 @@ class RegistrarController extends Controller
 
     }
 
+    /**
+    * A registrar may enroll a student in a course offering.
+    */
     function enrollStudent(Request $request) {
 
       $offeringId = $request->route('offeringId');
@@ -182,17 +217,20 @@ class RegistrarController extends Controller
       $r = SISQueries::validateEnrollmentRequest($o, $studentId);
 
       if (!$r[0]->offering_exists) {
-        Session::flash('error', 'Received request to enroll a student in a non-existing course offering!');
+        Session::flash('error', 'Received request to enroll a student in a '
+          .'non-existing course offering!');
         return $this->deptsIndex();
       }
 
       if (!$r[0]->student_exists) {
-        Session::flash('error', 'Received request to enroll a non-existing student in this course offering!');
+        Session::flash('error', 'Received request to enroll a non-existing '
+          .'student in this course offering!');
         return $this->showOffering($request);
       }
 
       if ($r[0]->enrolled) {
-        Session::flash('error', 'The specified student is already in enrolled in this course offering!');
+        Session::flash('error', 'The specified student is already in enrolled '
+          .'in this course offering!');
         return $this->showOffering($request);
       }
 
@@ -201,7 +239,8 @@ class RegistrarController extends Controller
       $credits = SISQueries::getStudentEnrollmentCredits($studentId);
       $courseCredit = Course::where('id',$o['course_id'])->pluck('credits')->first();
       if ($credits + $courseCredit > MAX_CREDITS) {
-        Session::flash('error', 'Enrollment would place student over the maximum allowable credit limit.');
+        Session::flash('error', 'Enrollment would place student over the '.
+          'maximum allowable credit limit.');
       } else {
         $e = new Enrollment();
         $e->student_id = $studentId;
@@ -211,6 +250,9 @@ class RegistrarController extends Controller
       return $this->showOffering($request);
     }
 
+    /**
+    * A registrar may withdraw an enrolled student from a course offering.
+    */
     function unenrollStudent(Request $request) {
       $offeringId = $request->route('offeringId');
       $this->validate($request, [
@@ -222,7 +264,8 @@ class RegistrarController extends Controller
           ['course_offering_id', $offeringId]
         ])->first();
       if ($enr['grade']) {
-        Session::flash('error', 'Student has been graded for this course offering and cannot be withdrawn');
+        Session::flash('error', 'Student has been graded for this course '
+        .'offering and cannot be withdrawn');
       } else {
         $d = Enrollment::where([
              ['student_id', $studentId],
@@ -234,6 +277,10 @@ class RegistrarController extends Controller
     }
 
 
+    /**
+    * Support function to render a deparment page with its courses and
+    * summary information about them.
+    */
     private function deptPage($deptId) {
 
       $validation = $this->validation ( array(
@@ -263,9 +310,6 @@ class RegistrarController extends Controller
         array_push($c, $course);
       }
 
-      //$students = SISQueries::getDeptStudents($deptId);
-      //dump($students);
-
       return view('registrar.dept')
         ->with('faculty', SISQueries::getDeptFaculty($deptId))
         ->with('students', SISQueries::getDeptStudents($deptId))
@@ -273,6 +317,11 @@ class RegistrarController extends Controller
         ->with('courses', $c);
     }
 
+    /**
+    * Support function to render a course with its offerings, summary
+    * information about them and offering management options.
+    */
+    )
     private function coursePage($deptId, $courseId) {
 
       $v = $this->validation(array(
@@ -288,6 +337,11 @@ class RegistrarController extends Controller
       $department = $v['dept'];
       $course = $v['course'];
       $course->load('course_offerings');
+
+      if (!$course->available) {
+        Session::flash('Course "'.$course->name .'" (id:'.$course->id
+          .')has been canceled by the department chair and cannot be edited!');
+      }
 
       $faculty = SISQueries::getDeptFaculty($deptId);
 
@@ -315,6 +369,10 @@ class RegistrarController extends Controller
         ->with('faculty_names', $fNames);
     }
 
+    /**
+    * Support function for saving a new course offering with its
+    * faculty teaching assignment.
+    */
     private function saveOffering($deptId, $courseId, $facId) {
       $validation = $this->validation(array(
         'deptId'=>$deptId,
@@ -350,8 +408,9 @@ class RegistrarController extends Controller
       return $this->coursePage($deptId, $courseId);
     }
 
-
-
+    /**
+    * Validation support function to verify an object's existence.
+    */
     private function check($result, $key, $message, $obj) {
       if (!$obj) {
         $result['valid'] = false;
@@ -362,6 +421,11 @@ class RegistrarController extends Controller
       return $result;
     }
 
+    /**
+    * Custom validation support function to verify that an input is numeric
+    * and positive. This integrates with other, more business-specific
+    * validation than the shipped Laravel validator.
+    */
     private function num_check($result, $val, $label) {
       if (!is_numeric($val) || $val < 1) {
         $result['valid'] = false;
@@ -400,6 +464,12 @@ class RegistrarController extends Controller
         $result = $this->check($result, 'course', 'No such course!', $course);
         if (!$result['valid']) {
           return $result;
+        }
+
+        if (!$course->available) {
+          $result['valid'] = false;
+          $result['msg'] = 'The department chair has canceled course "'
+            .$course->course_name .'" (id:'.$course->id.')!';
         }
       }
 

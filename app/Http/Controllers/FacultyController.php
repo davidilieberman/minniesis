@@ -21,6 +21,11 @@ define ('CAPACITY_MAX', 15);
 
 class FacultyController extends Controller
 {
+    /**
+    * Show the appropriate home page for the faculty member
+    * in session, with a list of the faculty member's teaching
+    * assignments.
+    */
     function index() {
       $u = Auth::user();
       $f = FacultyMember::find($u->id);
@@ -190,6 +195,10 @@ class FacultyController extends Controller
       return $this->chair();
     }
 
+    /**
+    * Show the page listing student's enrolled in an offering
+    * taught by the faculty member in session.
+    */
     function showOffering(Request $request) {
       // Validation: received a valid course offering id
       $offeringId = $request->route('offeringId');

@@ -10,7 +10,8 @@
   panel below to add new courses to your department, change the enrollment
   capacity of existing courses, or cancel currently active courses. Once a
   course is canceled, the Registrar's office will no longer be able to add
-  new offerings of it.
+  new offerings of it. Students currently enrolled in existing offerings of a canceled
+  course will be able to complete the course for graded credit.
 
 @endsection
 

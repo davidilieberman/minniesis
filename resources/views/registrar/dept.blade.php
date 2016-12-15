@@ -8,7 +8,9 @@
 
 @section('summary')
   This page lists the department's courses, its faculty and its student majors.
-  Select a course to manage its offerings and enroll students.
+  Select a course to manage its offerings and enroll students. Note that
+  if the department chair has canceled a course, you will not be able to
+  add new offerings to it.
 @endsection
 
 @section('pagedata')
@@ -24,10 +26,14 @@
           <th># Scheduled Offerings</th>
         </tr>
         @foreach( $courses as $course )
-        <tr>
+        <tr @if (!$course['available']) style="background-color:#ddd" @endif>
           <td>
-              <a href="/registrar/courses/{{$dept->id}}/{{$course['id']}}"
-                >{{ $course['course_name'] }}</a>
+              @if ($course['available'])
+                <a href="/registrar/courses/{{$dept->id}}/{{$course['id']}}"
+                  >{{ $course['course_name'] }}</a>
+              @else
+                {{ $course['course_name'] }}
+              @endif
           </td>
           <td>{{ $course['course_code'] }}</td>
           <td>{{ $course['capacity'] }}</td>
