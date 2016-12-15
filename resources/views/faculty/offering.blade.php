@@ -10,7 +10,7 @@
 
 @section('summary')
 
-  Greetings, {{ Auth::user()->name}}!
+  Use this page to enter grades for students enrolled in this course offering.
 
 @endsection
 
