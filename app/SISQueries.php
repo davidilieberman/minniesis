@@ -26,7 +26,7 @@ class SISQueries  {
   public static function getDeptStudents($deptId) {
     $q = SISQueries::studentQueryBase().
             "where s.department_id = :deptId
-            group by u.id, u.name, u.email, u.name, d.id
+            group by u.id, u.name, u.email, u.name, d.id, d.dept_desc, d.dept_code
             order by u.name";
     return DB::select(DB::raw($q), array('deptId' => $deptId));
   }
