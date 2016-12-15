@@ -164,7 +164,7 @@ class SISQueries  {
           LEFT JOIN grades g ON g.id = e.grade_id
           LEFT JOIN course_offerings o ON o.id = e.course_offering_id
           LEFT JOIN courses c ON c.id = o.course_id
-          GROUP BY u.id, u.name ORDER BY u.name" ;
+          GROUP BY u.id, u.email, u.name, d.dept_desc, d.id ORDER BY u.name" ;
     return DB::select(DB::raw($q));
   }
 
