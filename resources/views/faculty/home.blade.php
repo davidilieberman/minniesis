@@ -7,7 +7,7 @@
 @section('summary')
 
   Greetings, {{ Auth::user()->name}}!  Select a course you are teaching from the
-  "My Teaching Assignments" grade your students.
+  "My Teaching Assignments" panel below to grade your students.
 
   @if ($facultyMember->chair)
   <br/><br/>
